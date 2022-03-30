@@ -58,6 +58,10 @@ const ContainerDetails = ({ container, containerDetail }) => {
                         <DescriptionListDescription>{container.Image}</DescriptionListDescription>
                     </DescriptionListGroup>
                     <DescriptionListGroup>
+                        <DescriptionListTerm>{_("Volumes")}</DescriptionListTerm>
+                        <DescriptionListDescription>{container.Volumes}</DescriptionListDescription>
+                    </DescriptionListGroup>
+                    <DescriptionListGroup>
                         <DescriptionListTerm>{_("Command")}</DescriptionListTerm>
                         <DescriptionListDescription>{container.Command ? utils.quote_cmdline(container.Command) : ""}</DescriptionListDescription>
                     </DescriptionListGroup>

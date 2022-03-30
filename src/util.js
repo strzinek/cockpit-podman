@@ -174,3 +174,7 @@ export function compare_versions(a, b) {
 export function image_name(image) {
     return image.RepoTags ? image.RepoTags[0] : "<none>:<none>";
 }
+
+export function volume_name(volume) {
+    return volume.RepoTags ? volume.RepoTags[0] : "<none>:<none>";
+}

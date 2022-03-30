@@ -285,3 +285,52 @@ export function pruneUnusedImages(system) {
 export function imageExists(system, id) {
     return podmanCall("libpod/images/" + id + "/exists", "GET", {}, system);
 }
+
+export function inspectVolume(system, id) {
+    return new Promise((resolve, reject) => {
+        const options = {};
+        podmanCall("libpod/volumes/" + id + "/json", "GET", options, system)
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
+function parseVolumeInfo(info) {
+    const volume = {};
+
+    return volume;
+}
+
+export function getVolumes(system, id) {
+    return new Promise((resolve, reject) => {
+        const options = {};
+        if (id)
+            options.filters = JSON.stringify({ id: [id] });
+        podmanCall("libpod/volumes/json", "GET", options, system)
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
+export function delVolume(system, id, force) {
+    return new Promise((resolve, reject) => {
+        const options = {
+            force: force,
+        };
+        podmanCall("libpod/volumes/" + id, "DELETE", options, system)
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
+export function pruneUnusedVolumes(system) {
+    return new Promise((resolve, reject) => {
+        podmanCall("libpod/volumes/prune?all=true", "POST", {}, system).then(resolve)
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
+export function volumeExists(system, id) {
+    return podmanCall("libpod/volumes/" + id + "/exists", "GET", {}, system);
+}
