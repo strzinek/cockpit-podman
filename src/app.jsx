@@ -707,7 +707,7 @@ class Application extends React.Component {
             });
         } else
             volumeContainerList = null;
-    
+
         let startService = "";
         const action = (<>
             <AlertActionLink variant='secondary' onClick={this.startService}>{_("Start")}</AlertActionLink>

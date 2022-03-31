@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Button,
-    Card, CardBody, CardHeader, CardFooter,
+    Card, CardBody, CardHeader,
     Dropdown, DropdownItem,
     Flex, FlexItem,
     ExpandableSection,
@@ -14,6 +14,8 @@ import cockpit from 'cockpit';
 import { ListingTable } from "cockpit-components-table.jsx";
 import { ListingPanel } from 'cockpit-components-listing-panel.jsx';
 import VolumeDetails from './VolumeDetails.jsx';
+import { VolumeDeleteModal } from './VolumeDeleteModal.jsx';
+import PruneUnusedVolumesModal from './PruneUnusedVolumesModal.jsx';
 import ForceRemoveModal from './ForceRemoveModal.jsx';
 import * as client from './client.js';
 import * as utils from './util.js';
@@ -250,13 +252,6 @@ class Volumes extends React.Component {
                         </ExpandableSection>
                         : cardBody}
                 </CardBody>
-                {this.state.showSearchVolumeModal &&
-                <VolumeSearchModal
-                    close={() => this.setState({ showSearchVolumeModal: false })}
-                    user={this.props.user}
-                    registries={this.props.registries}
-                    userServiceAvailable={this.props.userServiceAvailable}
-                    systemServiceAvailable={this.props.systemServiceAvailable} /> }
                 {this.state.showPruneUnusedVolumesModal &&
                 <PruneUnusedVolumesModal
                   close={() => this.setState({ showPruneUnusedVolumesModal: false })}
@@ -299,26 +294,11 @@ const VolumeActions = ({ volume, onAddNotification, registries, selinuxAvailable
 
     const handleRemoveVolume = (tags, all) => {
         setShowVolumeDeleteModal(false);
-        if (all)
-            client.delVolume(volume.isSystem, volume.Id, false)
-                    .catch(ex => {
-                        setVolumeDeleteErrorMsg(ex.message);
-                        setShowVolumeDeleteErrorModal(true);
-                    });
-        else {
-            // Call another untag once previous one resolved. Calling all at once can result in undefined behavior
-            const tag = tags.shift();
-            const i = tag.lastIndexOf(":");
-            client.untagVolume(volume.isSystem, volume.Id, tag.substring(0, i), tag.substring(i + 1, tag.length))
-                    .then(() => {
-                        if (tags.length > 0)
-                            handleRemoveVolume(tags, all);
-                    })
-                    .catch(ex => {
-                        const error = cockpit.format(_("Failed to remove volume $0"), tag);
-                        onAddNotification({ type: 'danger', error, errorDetail: ex.message });
-                    });
-        }
+        client.delVolume(volume.isSystem, volume.Id, false)
+                .catch(ex => {
+                    setVolumeDeleteErrorMsg(ex.message);
+                    setShowVolumeDeleteErrorModal(true);
+                });
     };
 
     const handleForceRemoveVolume = () => {

@@ -295,12 +295,6 @@ export function inspectVolume(system, id) {
     });
 }
 
-function parseVolumeInfo(info) {
-    const volume = {};
-
-    return volume;
-}
-
 export function getVolumes(system, id) {
     return new Promise((resolve, reject) => {
         const options = {};
