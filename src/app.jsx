@@ -52,7 +52,8 @@ class Application extends React.Component {
             containersStats: {},
             containersDetails: {},
             volumes: null,
-            volumesDetails: {},
+            userVolumesLoaded: false,
+            systemVolumesLoaded: false,
             userContainersLoaded: null,
             systemContainersLoaded: null,
             userPodsLoaded: null,
@@ -380,15 +381,10 @@ class Application extends React.Component {
 
     handleVolumeEvent(event, system) {
         switch (event.Action) {
-        case 'push':
-        case 'save':
-        case 'tag':
-            this.updateVolumeAfterEvent(event.Actor.ID, system);
-            break;
-        case 'pull': // Pull event has not event.id
-        case 'untag':
         case 'remove':
         case 'prune':
+            this.updateVolumeAfterEvent(event.Actor.ID, system);
+            break;
         default:
             console.warn('Unhandled event type ', event.Type, event.Action);
         }
@@ -689,19 +685,16 @@ class Application extends React.Component {
             imageContainerList = null;
 
         let volumeContainerList = {};
-        if (this.state.containers !== null) {
-            Object.keys(this.state.containers).forEach(c => {
-                const container = this.state.containers[c];
-                const volume = container.VolumeID + container.isSystem.toString();
+        if (this.state.volumes !== null) {
+            Object.keys(this.state.volumes).forEach(c => {
+                const volume = this.state.volumes[c];
                 if (volumeContainerList[volume]) {
                     volumeContainerList[volume].push({
-                        container: container,
-                        stats: this.state.containersStats[container.Id + container.isSystem.toString()],
+                        stats: this.state.containersStats[volume.Id + volume.isSystem.toString()],
                     });
                 } else {
                     volumeContainerList[volume] = [{
-                        container: container,
-                        stats: this.state.containersStats[container.Id + container.isSystem.toString()]
+                        stats: this.state.containersStats[volume.Id + volume.isSystem.toString()]
                     }];
                 }
             });

@@ -33,15 +33,37 @@ const render_container_published_ports = (ports) => {
     return <List isPlain>{result}</List>;
 };
 
+const render_container_mounts = (mounts) => {
+    if (!mounts)
+        return null;
+
+    const result = mounts.map(mount => {
+        const name = mount.Name;
+        const type = mount.Type;
+        const driver = mount.Driver;
+        const source = mount.Source;
+        const destination = mount.Destination;
+        return (
+            <ListItem key={ name }>
+                { name } ({ driver } { type }): { source } &rarr; { destination }
+            </ListItem>
+        );
+    });
+
+    return <List isPlain>{result}</List>;
+};
+
 const ContainerDetails = ({ container, containerDetail }) => {
     const ports = render_container_published_ports(container.Ports);
+    const mounts = render_container_mounts(containerDetail.Mounts);
     const networkOptions = (
         containerDetail &&
         [
             containerDetail.NetworkSettings.IPAddress,
             containerDetail.NetworkSettings.Gateway,
             containerDetail.NetworkSettings.MacAddress,
-            ports
+            ports,
+            mounts
         ].some(itm => !!itm)
     );
 
@@ -57,10 +79,10 @@ const ContainerDetails = ({ container, containerDetail }) => {
                         <DescriptionListTerm>{_("Image")}</DescriptionListTerm>
                         <DescriptionListDescription>{container.Image}</DescriptionListDescription>
                     </DescriptionListGroup>
-                    <DescriptionListGroup>
-                        <DescriptionListTerm>{_("Volumes")}</DescriptionListTerm>
-                        <DescriptionListDescription>{container.Volumes}</DescriptionListDescription>
-                    </DescriptionListGroup>
+                    {mounts && <DescriptionListGroup>
+                        <DescriptionListTerm>{_("Mounts")}</DescriptionListTerm>
+                        <DescriptionListDescription>{mounts}</DescriptionListDescription>
+                    </DescriptionListGroup>}
                     <DescriptionListGroup>
                         <DescriptionListTerm>{_("Command")}</DescriptionListTerm>
                         <DescriptionListDescription>{container.Command ? utils.quote_cmdline(container.Command) : ""}</DescriptionListDescription>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-    Button,
     Card, CardBody, CardHeader,
     Dropdown, DropdownItem,
     Flex, FlexItem,
@@ -29,7 +28,6 @@ class Volumes extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            intermediateOpened: false,
             isExpanded: false,
         };
 
@@ -55,9 +53,7 @@ class Volumes extends React.Component {
         const unusedVolumes = [];
         const volumeStats = {
             volumesTotal: 0,
-            volumesSize: 0,
             unusedTotal: 0,
-            unusedSize: 0,
         };
 
         if (volumeContainerList === null) {
@@ -68,12 +64,10 @@ class Volumes extends React.Component {
             Object.keys(volumes).forEach(id => {
                 const volume = volumes[id];
                 volumeStats.volumesTotal += 1;
-                volumeStats.volumesSize += volume.Size;
 
                 const usedBy = volumeContainerList[volume.Id + volume.isSystem.toString()];
                 if (usedBy === undefined) {
                     volumeStats.unusedTotal += 1;
-                    volumeStats.unusedSize += volume.Size;
                     unusedVolumes.push(volume);
                 }
             });
@@ -86,11 +80,16 @@ class Volumes extends React.Component {
         const tabs = [];
         const { title: usedByText, count: usedByCount } = this.getUsedByText(volume);
 
+        const info_block =
+            <div className="volume-block">
+                <span className="volume-name">{volume.Name}</span>
+                <small>{utils.quote_cmdline(volume.Mountpoint)}</small>
+            </div>;
+
         const columns = [
-            { title: utils.volume_name(volume), header: true, props: { modifier: "breakWord" } },
+            { title: info_block },
             { title: volume.isSystem ? _("system") : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user}</div>, props: { modifier: "nowrap" } },
-            utils.localize_time(volume.Created),
-            utils.truncate_id(volume.Id),
+            utils.localize_time(volume.CreatedAt),
             { title: cockpit.format_bytes(volume.Size, 1000), props: { modifier: "nowrap" } },
             { title: <span className={usedByCount === 0 ? "ct-grey-text" : ""}>{usedByText}</span>, props: { modifier: "nowrap" } },
             {
@@ -175,33 +174,6 @@ class Volumes extends React.Component {
 
         const volumeRows = filtered.map(id => this.renderRow(this.props.volumes[id]));
 
-        const interim = this.props.volumes && Object.keys(this.props.volumes).some(id => {
-            // Intermediate volume does not have any tags
-            if (this.props.volumes[id].RepoTags && this.props.volumes[id].RepoTags.length > 0)
-                return false;
-
-            // Only filter by selected user
-            if (this.props.userServiceAvailable && this.props.systemServiceAvailable && this.props.ownerFilter !== "all") {
-                if (this.props.ownerFilter === "system" && !this.props.volumes[id].isSystem)
-                    return false;
-                if (this.props.ownerFilter !== "system" && this.props.volumes[id].isSystem)
-                    return false;
-            }
-
-            // Any text filter hides all volumes
-            if (this.props.textFilter.length > 0)
-                return false;
-
-            return true;
-        });
-
-        let toggleIntermediate = "";
-        if (interim) {
-            toggleIntermediate = <span className="listing-action">
-                <Button variant="link" onClick={() => this.setState({ intermediateOpened: !intermediateOpened, isExpanded: true })}>
-                    {intermediateOpened ? _("Hide intermediate volumes") : _("Show intermediate volumes")}</Button>
-            </span>;
-        }
         const cardBody = (
             <>
                 <ListingTable aria-label={_("Volumes")}
@@ -209,7 +181,6 @@ class Volumes extends React.Component {
                               emptyCaption={emptyCaption}
                               columns={columnTitles}
                               rows={volumeRows} />
-                {toggleIntermediate}
             </>
         );
 
@@ -217,11 +188,11 @@ class Volumes extends React.Component {
         const volumeTitleStats = (
             <>
                 <Text component={TextVariants.h5}>
-                    {cockpit.format(cockpit.ngettext("$0 volume total, $1", "$0 volumes total, $1", volumeStats.volumesTotal), volumeStats.volumesTotal, cockpit.format_bytes(volumeStats.volumesSize, 1000))}
+                    {cockpit.format(cockpit.ngettext("$0 volume total", "$0 volumes total", volumeStats.volumesTotal), volumeStats.volumesTotal)}
                 </Text>
                 {volumeStats.unusedTotal !== 0 &&
                 <Text component={TextVariants.h5}>
-                    {cockpit.format(cockpit.ngettext("$0 unused volume, $1", "$0 unused volumes, $1", volumeStats.unusedTotal), volumeStats.unusedTotal, cockpit.format_bytes(volumeStats.unusedSize, 1000))}
+                    {cockpit.format(cockpit.ngettext("$0 unused volume", "$0 unused volumes", volumeStats.unusedTotal), volumeStats.unusedTotal)}
                 </Text>
                 }
             </>
