@@ -240,13 +240,13 @@ class Application extends React.Component {
                         // Copy only volumes that could not be deleted with this event
                         // So when event from system come, only copy user volumes and vice versa
                         const copyVolumes = {};
-                        Object.entries(prevState.volumes || {}).forEach(([Id, volume]) => {
+                        Object.entries(prevState.volumes || {}).forEach(([id, volume]) => {
                             if (volume.isSystem !== system)
-                                copyVolumes[Id] = volume;
+                                copyVolumes[id] = volume;
                         });
-                        Object.entries(reply).forEach(([Id, volume]) => {
+                        Object.entries(reply).forEach(([id, volume]) => {
                             volume.isSystem = system;
-                            copyVolumes[Id + system.toString()] = volume;
+                            copyVolumes[id + system.toString()] = volume;
                         });
 
                         return {
@@ -333,12 +333,12 @@ class Application extends React.Component {
                 });
     }
 
-    updateVolumeAfterEvent(id, system) {
-        client.getVolumes(system, id)
+    updateVolumeAfterEvent(name, system) {
+        client.getVolumes(system, name)
                 .then(reply => {
-                    const volume = reply[id];
+                    const volume = reply[name];
                     volume.isSystem = system;
-                    this.updateState("volumes", id + system.toString(), volume);
+                    this.updateState("volumes", name + system.toString(), volume);
                 })
                 .catch(ex => {
                     console.warn("Failed to do Update Volume:", JSON.stringify(ex));
@@ -690,11 +690,11 @@ class Application extends React.Component {
                 const volume = this.state.volumes[c];
                 if (volumeContainerList[volume]) {
                     volumeContainerList[volume].push({
-                        stats: this.state.containersStats[volume.Id + volume.isSystem.toString()],
+                        stats: this.state.volumes[volume.name + volume.isSystem.toString()],
                     });
                 } else {
                     volumeContainerList[volume] = [{
-                        stats: this.state.containersStats[volume.Id + volume.isSystem.toString()]
+                        stats: this.state.volumes[volume.name + volume.isSystem.toString()]
                     }];
                 }
             });
@@ -802,9 +802,9 @@ class Application extends React.Component {
                 <PageSection>
                     <Stack hasGutter>
                         { this.state.showStartService ? startService : null }
-                        {imageList}
-                        {volumeList}
                         {containerList}
+                        {volumeList}
+                        {imageList}
                     </Stack>
                 </PageSection>
             </Page>

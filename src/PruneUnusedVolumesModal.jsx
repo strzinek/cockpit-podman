@@ -3,7 +3,6 @@ import { Button, Checkbox, Flex, List, ListItem, Modal, } from '@patternfly/reac
 import cockpit from 'cockpit';
 
 import * as client from './client.js';
-import * as utils from './util.js';
 
 import "@patternfly/patternfly/utilities/Spacing/spacing.css";
 
@@ -36,7 +35,7 @@ function VolumeOptions({ volumes, checked, isSystem, handleChange, name, showChe
             <List id={listNameId}>
                 {shownVolumes.map((volume, index) =>
                     <ListItem className="pf-u-ml-md" key={index}>
-                        {utils.volume_name(volume)}
+                        {volume.name}
                     </ListItem>
                 )}
                 {!isExpanded && volumes.length > 5 &&

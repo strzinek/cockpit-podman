@@ -39,10 +39,10 @@ class Volumes extends React.Component {
         if (volumeContainerList === null) {
             return { title: _("unused"), count: 0 };
         }
-        const containers = volumeContainerList[volume.Id + volume.isSystem.toString()];
-        if (containers !== undefined) {
-            const title = cockpit.format(cockpit.ngettext("$0 container", "$0 containers", containers.length), containers.length);
-            return { title, count: containers.length };
+        const volumes = volumeContainerList[volume.name + volume.isSystem.toString()];
+        if (volumes !== undefined) {
+            const title = cockpit.format(cockpit.ngettext("$0 volumes", "$0 volumes", volumes.length), volumes.length);
+            return { title, count: volumes.length };
         } else {
             return { title: _("unused"), count: 0 };
         }
@@ -61,11 +61,11 @@ class Volumes extends React.Component {
         }
 
         if (volumes !== null) {
-            Object.keys(volumes).forEach(id => {
-                const volume = volumes[id];
+            Object.keys(volumes).forEach(name => {
+                const volume = volumes[name];
                 volumeStats.volumesTotal += 1;
 
-                const usedBy = volumeContainerList[volume.Id + volume.isSystem.toString()];
+                const usedBy = volumeContainerList[volume.name + volume.isSystem.toString()];
                 if (usedBy === undefined) {
                     volumeStats.unusedTotal += 1;
                     unusedVolumes.push(volume);
@@ -82,15 +82,15 @@ class Volumes extends React.Component {
 
         const info_block =
             <div className="volume-block">
-                <span className="volume-name">{volume.Name}</span>
-                <small>{utils.quote_cmdline(volume.Mountpoint)}</small>
+                <span className="volume-name">{volume.Name}</span><br />
+                <small>{volume.Mountpoint}</small>
             </div>;
 
         const columns = [
             { title: info_block },
             { title: volume.isSystem ? _("system") : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user}</div>, props: { modifier: "nowrap" } },
-            utils.localize_time(volume.CreatedAt),
-            { title: cockpit.format_bytes(volume.Size, 1000), props: { modifier: "nowrap" } },
+            utils.localize_date(volume.CreatedAt),
+            { title: volume.Driver, props: { modifier: "nowrap" } },
             { title: <span className={usedByCount === 0 ? "ct-grey-text" : ""}>{usedByText}</span>, props: { modifier: "nowrap" } },
             {
                 title: <VolumeActions volume={volume} onAddNotification={this.props.onAddNotification} selinuxAvailable={this.props.selinuxAvailable}
@@ -107,7 +107,7 @@ class Volumes extends React.Component {
             renderer: VolumeDetails,
             data: {
                 volume: volume,
-                containers: this.props.volumeContainerList !== null ? this.props.volumeContainerList[volume.Id + volume.isSystem.toString()] : null,
+                containers: this.props.volumeContainerList !== null ? this.props.volumeContainerList[volume.name + volume.isSystem.toString()] : null,
                 showAll: this.props.showAll,
             }
         });
@@ -117,8 +117,8 @@ class Volumes extends React.Component {
                                 tabRenderers={tabs} />,
             columns: columns,
             props: {
-                key :volume.Id + volume.isSystem.toString(),
-                "data-row-id": volume.Id + volume.isSystem.toString(),
+                key :volume.name + volume.isSystem.toString(),
+                "data-row-id": volume.name + volume.isSystem.toString(),
             },
         };
     }
@@ -128,8 +128,7 @@ class Volumes extends React.Component {
             { title: _("Volume"), transforms: [cellWidth(20)] },
             _("Owner"),
             _("Created"),
-            _("ID"),
-            _("Disk space"),
+            _("Driver"),
             _("Used by")
         ];
         let emptyCaption = _("No volumes");
@@ -137,8 +136,6 @@ class Volumes extends React.Component {
             emptyCaption = "Loading...";
         else if (this.props.textFilter.length > 0)
             emptyCaption = _("No volumes that match the current filter");
-
-        const intermediateOpened = this.state.intermediateOpened;
 
         let filtered = [];
         if (this.props.volumes !== null) {
@@ -149,12 +146,6 @@ class Volumes extends React.Component {
                     if (this.props.ownerFilter !== "system" && this.props.volumes[id].isSystem)
                         return false;
                 }
-
-                const tags = this.props.volumes[id].RepoTags || [];
-                if (!intermediateOpened && tags.length < 1)
-                    return false;
-                if (this.props.textFilter.length > 0)
-                    return tags.some(tag => tag.toLowerCase().indexOf(this.props.textFilter.toLowerCase()) >= 0);
                 return true;
             });
         }
@@ -163,8 +154,8 @@ class Volumes extends React.Component {
             // User volumes are in front of system ones
             if (this.props.volumes[a].isSystem !== this.props.volumes[b].isSystem)
                 return this.props.volumes[a].isSystem ? 1 : -1;
-            const name_a = this.props.volumes[a].RepoTags ? this.props.volumes[a].RepoTags[0] : "";
-            const name_b = this.props.volumes[b].RepoTags ? this.props.volumes[b].RepoTags[0] : "";
+            const name_a = this.props.volumes[a].name;
+            const name_b = this.props.volumes[b].name;
             if (name_a === "")
                 return 1;
             if (name_b === "")
@@ -205,7 +196,7 @@ class Volumes extends React.Component {
                         <FlexItem grow={{ default: 'grow' }}>
                             <Flex>
                                 <Text className="volumes-title" component={TextVariants.h3}>{_("Volumes")}</Text>
-                                <Flex style={{ "row-gap": "var(--pf-global--spacer--xs)" }}>{volumeTitleStats}</Flex>
+                                <Flex style={{ rowGap: "var(--pf-global--spacer--xs)" }}>{volumeTitleStats}</Flex>
                             </Flex>
                         </FlexItem>
                         <FlexItem>

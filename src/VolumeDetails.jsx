@@ -6,7 +6,7 @@ import { DescriptionList, DescriptionListTerm, DescriptionListDescription, Descr
 import VolumeUsedBy from './VolumeUsedBy.jsx';
 const _ = cockpit.gettext;
 
-const VolumeDetails = ({ containers, volume, showAll }) => {
+const VolumeDetails = ({ volume, containers, showAll }) => {
     return (
         <DescriptionList className='volume-details' isAutoFit>
             {containers &&

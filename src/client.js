@@ -1,7 +1,7 @@
 import rest from './rest.js';
 
 const PODMAN_SYSTEM_ADDRESS = "/run/podman/podman.sock";
-export const VERSION = "/v1.12/";
+export const VERSION = "/v4.0/";
 
 export function getAddress(system) {
     if (system)
@@ -286,32 +286,29 @@ export function imageExists(system, id) {
     return podmanCall("libpod/images/" + id + "/exists", "GET", {}, system);
 }
 
-export function inspectVolume(system, id) {
+export function inspectVolume(system, name) {
     return new Promise((resolve, reject) => {
         const options = {};
-        podmanCall("libpod/volumes/" + id + "/json", "GET", options, system)
+        podmanCall("libpod/volumes/" + name + "/json", "GET", options, system)
                 .then(reply => resolve(JSON.parse(reply)))
                 .catch(reject);
     });
 }
 
-export function getVolumes(system, id) {
+export function getVolumes(system) {
     return new Promise((resolve, reject) => {
-        const options = {};
-        if (id)
-            options.filters = JSON.stringify({ id: [id] });
-        podmanCall("libpod/volumes/json", "GET", options, system)
+        podmanCall("libpod/volumes/json", "GET", {}, system)
                 .then(reply => resolve(JSON.parse(reply)))
                 .catch(reject);
     });
 }
 
-export function delVolume(system, id, force) {
+export function delVolume(system, name, force) {
     return new Promise((resolve, reject) => {
         const options = {
             force: force,
         };
-        podmanCall("libpod/volumes/" + id, "DELETE", options, system)
+        podmanCall("libpod/volumes/" + name, "DELETE", options, system)
                 .then(reply => resolve(JSON.parse(reply)))
                 .catch(reject);
     });
@@ -325,6 +322,6 @@ export function pruneUnusedVolumes(system) {
     });
 }
 
-export function volumeExists(system, id) {
-    return podmanCall("libpod/volumes/" + id + "/exists", "GET", {}, system);
+export function volumeExists(system, name) {
+    return podmanCall("libpod/volumes/" + name + "/exists", "GET", {}, system);
 }
