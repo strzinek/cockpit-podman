@@ -295,9 +295,12 @@ export function inspectVolume(system, name) {
     });
 }
 
-export function getVolumes(system) {
+export function getVolumes(system, name) {
     return new Promise((resolve, reject) => {
-        podmanCall("libpod/volumes/json", "GET", {}, system)
+        const options = {};
+        if (name)
+            options.filters = JSON.stringify({ name: [name] });
+        podmanCall("libpod/volumes/json", "GET", options, system)
                 .then(reply => resolve(JSON.parse(reply)))
                 .catch(reject);
     });
@@ -309,7 +312,7 @@ export function delVolume(system, name, force) {
             force: force,
         };
         podmanCall("libpod/volumes/" + name, "DELETE", options, system)
-                .then(reply => resolve(JSON.parse(reply)))
+                .then(reply => reply)
                 .catch(reject);
     });
 }

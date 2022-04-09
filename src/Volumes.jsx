@@ -39,7 +39,7 @@ class Volumes extends React.Component {
         if (volumeContainerList === null) {
             return { title: _("unused"), count: 0 };
         }
-        const volumes = volumeContainerList[volume.name + volume.isSystem.toString()];
+        const volumes = volumeContainerList[volume.Name + volume.isSystem.toString()];
         if (volumes !== undefined) {
             const title = cockpit.format(cockpit.ngettext("$0 volumes", "$0 volumes", volumes.length), volumes.length);
             return { title, count: volumes.length };
@@ -65,7 +65,7 @@ class Volumes extends React.Component {
                 const volume = volumes[name];
                 volumeStats.volumesTotal += 1;
 
-                const usedBy = volumeContainerList[volume.name + volume.isSystem.toString()];
+                const usedBy = volumeContainerList[volume.Name + volume.isSystem.toString()];
                 if (usedBy === undefined) {
                     volumeStats.unusedTotal += 1;
                     unusedVolumes.push(volume);
@@ -107,7 +107,7 @@ class Volumes extends React.Component {
             renderer: VolumeDetails,
             data: {
                 volume: volume,
-                containers: this.props.volumeContainerList !== null ? this.props.volumeContainerList[volume.name + volume.isSystem.toString()] : null,
+                containers: this.props.volumeContainerList !== null ? this.props.volumeContainerList[volume.Name + volume.isSystem.toString()] : null,
                 showAll: this.props.showAll,
             }
         });
@@ -117,8 +117,8 @@ class Volumes extends React.Component {
                                 tabRenderers={tabs} />,
             columns: columns,
             props: {
-                key :volume.name + volume.isSystem.toString(),
-                "data-row-id": volume.name + volume.isSystem.toString(),
+                key :volume.Name + volume.isSystem.toString(),
+                "data-row-id": volume.Name + volume.isSystem.toString(),
             },
         };
     }
@@ -248,15 +248,15 @@ const VolumeOverActions = ({ handlePruneUsedVolumes, unusedVolumes }) => {
     );
 };
 
-const VolumeActions = ({ volume, onAddNotification, registries, selinuxAvailable, user, systemServiceAvailable, userServiceAvailable, podmanRestartAvailable }) => {
+const VolumeActions = ({ volume, onAddNotification }) => {
     const [showVolumeDeleteModal, setShowVolumeDeleteModal] = useState(false);
     const [showVolumeDeleteErrorModal, setShowVolumeDeleteErrorModal] = useState(false);
     const [volumeDeleteErrorMsg, setVolumeDeleteErrorMsg] = useState();
     const [isActionsKebabOpen, setIsActionsKebabOpen] = useState(false);
 
-    const handleRemoveVolume = (tags, all) => {
+    const handleRemoveVolume = () => {
         setShowVolumeDeleteModal(false);
-        client.delVolume(volume.isSystem, volume.Id, false)
+        client.delVolume(volume.isSystem, volume.Name, false)
                 .catch(ex => {
                     setVolumeDeleteErrorMsg(ex.message);
                     setShowVolumeDeleteErrorModal(true);
@@ -264,10 +264,10 @@ const VolumeActions = ({ volume, onAddNotification, registries, selinuxAvailable
     };
 
     const handleForceRemoveVolume = () => {
-        return client.delVolume(volume.isSystem, volume.Id, true)
+        return client.delVolume(volume.isSystem, volume.Name, true)
                 .then(reply => setShowVolumeDeleteErrorModal(false))
                 .catch(ex => {
-                    const error = cockpit.format(_("Failed to force remove volume $0"), volume.RepoTags[0]);
+                    const error = cockpit.format(_("Failed to force remove volume $0"), volume.Name);
                     onAddNotification({ type: 'danger', error, errorDetail: ex.message });
                     throw ex;
                 });
@@ -279,7 +279,7 @@ const VolumeActions = ({ volume, onAddNotification, registries, selinuxAvailable
                   isPlain
                   position="right"
                   dropdownItems={[
-                      <DropdownItem key={volume.Id + "delete"}
+                      <DropdownItem key={volume.Name + volume.isSystem.toString() + "delete"}
                                     component="button"
                                     className="pf-m-danger btn-delete"
                                     onClick={() => setShowVolumeDeleteModal(true)}>
@@ -293,7 +293,7 @@ const VolumeActions = ({ volume, onAddNotification, registries, selinuxAvailable
             {extraActions}
             {showVolumeDeleteErrorModal &&
                 <ForceRemoveModal
-                        name={volume.RepoTags[0]}
+                        name={volume.Name}
                         handleCancel={() => setShowVolumeDeleteErrorModal(false)}
                         handleForceRemove={handleForceRemoveVolume}
                         reason={volumeDeleteErrorMsg} /> }

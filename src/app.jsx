@@ -240,13 +240,13 @@ class Application extends React.Component {
                         // Copy only volumes that could not be deleted with this event
                         // So when event from system come, only copy user volumes and vice versa
                         const copyVolumes = {};
-                        Object.entries(prevState.volumes || {}).forEach(([id, volume]) => {
+                        Object.entries(prevState.volumes || {}).forEach(([Id, volume]) => {
                             if (volume.isSystem !== system)
-                                copyVolumes[id] = volume;
+                                copyVolumes[Id] = volume;
                         });
-                        Object.entries(reply).forEach(([id, volume]) => {
+                        Object.entries(reply).forEach(([Id, volume]) => {
                             volume.isSystem = system;
-                            copyVolumes[id + system.toString()] = volume;
+                            copyVolumes[Id + system.toString()] = volume;
                         });
 
                         return {
@@ -333,18 +333,6 @@ class Application extends React.Component {
                 });
     }
 
-    updateVolumeAfterEvent(name, system) {
-        client.getVolumes(system, name)
-                .then(reply => {
-                    const volume = reply[name];
-                    volume.isSystem = system;
-                    this.updateState("volumes", name + system.toString(), volume);
-                })
-                .catch(ex => {
-                    console.warn("Failed to do Update Volume:", JSON.stringify(ex));
-                });
-    }
-
     updatePodAfterEvent(id, system) {
         client.getPods(system, id)
                 .then(reply => {
@@ -383,7 +371,7 @@ class Application extends React.Component {
         switch (event.Action) {
         case 'remove':
         case 'prune':
-            this.updateVolumeAfterEvent(event.Actor.ID, system);
+            this.updateVolumesAfterEvent(system);
             break;
         default:
             console.warn('Unhandled event type ', event.Type, event.Action);
@@ -690,11 +678,11 @@ class Application extends React.Component {
                 const volume = this.state.volumes[c];
                 if (volumeContainerList[volume]) {
                     volumeContainerList[volume].push({
-                        stats: this.state.volumes[volume.name + volume.isSystem.toString()],
+                        stats: this.state.volumes[volume.Name + volume.isSystem.toString()],
                     });
                 } else {
                     volumeContainerList[volume] = [{
-                        stats: this.state.volumes[volume.name + volume.isSystem.toString()]
+                        stats: this.state.volumes[volume.Name + volume.isSystem.toString()]
                     }];
                 }
             });
