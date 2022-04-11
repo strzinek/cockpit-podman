@@ -10,7 +10,7 @@ export class VolumeDeleteModal extends React.Component {
             <Modal isOpen
                    position="top" variant="medium"
                    onClose={this.props.handleCancelVolumeDeleteModal}
-                   title={cockpit.format(_("Delete $0"), this.props.volumeWillDelete.Name)}
+                   title={cockpit.format(_("Delete volume $0"), this.props.volumeWillDelete.Name)}
                    footer={<>
                        <Button id="btn-vol-delete" variant="danger"
                                onClick={() => this.props.handleRemoveVolume()}>

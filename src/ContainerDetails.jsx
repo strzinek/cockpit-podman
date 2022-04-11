@@ -45,7 +45,25 @@ const render_container_mounts = (mounts) => {
         const destination = mount.Destination;
         return (
             <ListItem key={ name }>
-                { name } ({ driver } { type }): <small>{ source }</small> &rarr; { destination }
+                { name } &rarr; { destination } <br />
+                <small> { driver } { type }: <br />
+                    { source }</small>
+            </ListItem>
+        );
+    });
+
+    return <List isPlain>{result}</List>;
+};
+
+const render_container_env = (env) => {
+    if (!env)
+        return null;
+
+    const result = env.map(value => {
+        const keyvalue = value.split("=");
+        return (
+            <ListItem key={ keyvalue[0] }>
+                { keyvalue[0] } = <small>{ keyvalue[1] }</small>
             </ListItem>
         );
     });
@@ -55,7 +73,8 @@ const render_container_mounts = (mounts) => {
 
 const ContainerDetails = ({ container, containerDetail }) => {
     const ports = render_container_published_ports(container.Ports);
-    const mounts = containerDetail && render_container_mounts(containerDetail.Mounts);
+    const mounts = (containerDetail && containerDetail.Mounts.length !== 0) ? render_container_mounts(containerDetail.Mounts) : null;
+    const env = (containerDetail && containerDetail.Config) ? render_container_env(containerDetail.Config.Env) : null;
     const networkOptions = (
         containerDetail &&
         [
@@ -79,10 +98,6 @@ const ContainerDetails = ({ container, containerDetail }) => {
                         <DescriptionListTerm>{_("Image")}</DescriptionListTerm>
                         <DescriptionListDescription>{container.Image}</DescriptionListDescription>
                     </DescriptionListGroup>
-                    {containerDetail && containerDetail.Mounts.length !== 0 && <DescriptionListGroup>
-                        <DescriptionListTerm>{_("Mounts")}</DescriptionListTerm>
-                        <DescriptionListDescription>{mounts}</DescriptionListDescription>
-                    </DescriptionListGroup>}
                     <DescriptionListGroup>
                         <DescriptionListTerm>{_("Command")}</DescriptionListTerm>
                         <DescriptionListDescription>{container.Command ? utils.quote_cmdline(container.Command) : ""}</DescriptionListDescription>
@@ -90,7 +105,7 @@ const ContainerDetails = ({ container, containerDetail }) => {
                 </DescriptionList>
             </FlexItem>
             <FlexItem>
-                {networkOptions && <DescriptionList columnModifier={{ default: '2Col' }} className='container-details-networking'>
+                {networkOptions && <DescriptionList className='container-details-networking'>
                     {ports && <DescriptionListGroup>
                         <DescriptionListTerm>{_("Ports")}</DescriptionListTerm>
                         <DescriptionListDescription>{ports}</DescriptionListDescription>
@@ -108,6 +123,22 @@ const ContainerDetails = ({ container, containerDetail }) => {
                         <DescriptionListDescription>{containerDetail.NetworkSettings.MacAddress}</DescriptionListDescription>
                     </DescriptionListGroup>}
                 </DescriptionList>}
+            </FlexItem>
+            <FlexItem>
+                <DescriptionList className='container-details-mounts'>
+                    {mounts && <DescriptionListGroup>
+                        <DescriptionListTerm>{_("Mounts")}</DescriptionListTerm>
+                        <DescriptionListDescription>{mounts}</DescriptionListDescription>
+                    </DescriptionListGroup>}
+                </DescriptionList>
+            </FlexItem>
+            <FlexItem>
+                <DescriptionList className='container-details-env'>
+                    {env && <DescriptionListGroup>
+                        <DescriptionListTerm>{_("ENV")}</DescriptionListTerm>
+                        <DescriptionListDescription>{env}</DescriptionListDescription>
+                    </DescriptionListGroup>}
+                </DescriptionList>
             </FlexItem>
             <FlexItem>
                 <DescriptionList className='container-details-state'>
