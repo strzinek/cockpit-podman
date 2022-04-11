@@ -196,11 +196,9 @@ class Application extends React.Component {
                             [system ? "systemContainersLoaded" : "userContainersLoaded"]: true,
                         };
                     });
-                    if (init) {
-                        this.updateContainerStats(system);
-                        for (const container of reply || []) {
-                            this.inspectContainerDetail(container.Id, system);
-                        }
+                    this.updateContainerStats(system);
+                    for (const container of reply || []) {
+                        this.inspectContainerDetail(container.Id, system);
                     }
                 })
                 .catch(console.log);
@@ -246,7 +244,7 @@ class Application extends React.Component {
                         });
                         Object.entries(reply).forEach(([Id, volume]) => {
                             volume.isSystem = system;
-                            copyVolumes[Id + system.toString()] = volume;
+                            copyVolumes[volume.Name + system.toString()] = volume;
                         });
 
                         return {
@@ -371,6 +369,7 @@ class Application extends React.Component {
         switch (event.Action) {
         case 'remove':
         case 'prune':
+        case 'create':
             this.updateVolumesAfterEvent(system);
             break;
         default:

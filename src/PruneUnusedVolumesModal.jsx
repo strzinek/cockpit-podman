@@ -35,7 +35,7 @@ function VolumeOptions({ volumes, checked, isSystem, handleChange, name, showChe
             <List id={listNameId}>
                 {shownVolumes.map((volume, index) =>
                     <ListItem className="pf-u-ml-md" key={index}>
-                        {volume.name}
+                        {volume.Name}
                     </ListItem>
                 )}
                 {!isExpanded && volumes.length > 5 &&

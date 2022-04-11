@@ -328,3 +328,11 @@ export function pruneUnusedVolumes(system) {
 export function volumeExists(system, name) {
     return podmanCall("libpod/volumes/" + name + "/exists", "GET", {}, system);
 }
+
+export function createVolume(system, config) {
+    return new Promise((resolve, reject) => {
+        podmanCall("libpod/volumes/create", "POST", {}, system, JSON.stringify(config))
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}

@@ -45,7 +45,7 @@ const render_container_mounts = (mounts) => {
         const destination = mount.Destination;
         return (
             <ListItem key={ name }>
-                { name } ({ driver } { type }): { source } &rarr; { destination }
+                { name } ({ driver } { type }): <small>{ source }</small> &rarr; { destination }
             </ListItem>
         );
     });
@@ -55,7 +55,7 @@ const render_container_mounts = (mounts) => {
 
 const ContainerDetails = ({ container, containerDetail }) => {
     const ports = render_container_published_ports(container.Ports);
-    const mounts = render_container_mounts(containerDetail.Mounts);
+    const mounts = containerDetail && render_container_mounts(containerDetail.Mounts);
     const networkOptions = (
         containerDetail &&
         [
@@ -79,7 +79,7 @@ const ContainerDetails = ({ container, containerDetail }) => {
                         <DescriptionListTerm>{_("Image")}</DescriptionListTerm>
                         <DescriptionListDescription>{container.Image}</DescriptionListDescription>
                     </DescriptionListGroup>
-                    {mounts && <DescriptionListGroup>
+                    {containerDetail && containerDetail.Mounts.length !== 0 && <DescriptionListGroup>
                         <DescriptionListTerm>{_("Mounts")}</DescriptionListTerm>
                         <DescriptionListDescription>{mounts}</DescriptionListDescription>
                     </DescriptionListGroup>}

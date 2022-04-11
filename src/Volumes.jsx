@@ -5,7 +5,8 @@ import {
     Flex, FlexItem,
     ExpandableSection,
     KebabToggle,
-    Text, TextVariants
+    Text, TextVariants,
+    ToolbarItem, Button
 } from '@patternfly/react-core';
 import { cellWidth } from '@patternfly/react-table';
 
@@ -16,6 +17,7 @@ import VolumeDetails from './VolumeDetails.jsx';
 import { VolumeDeleteModal } from './VolumeDeleteModal.jsx';
 import PruneUnusedVolumesModal from './PruneUnusedVolumesModal.jsx';
 import ForceRemoveModal from './ForceRemoveModal.jsx';
+import { VolumeCreateModal } from './VolumeCreateModal.jsx';
 import * as client from './client.js';
 import * as utils from './util.js';
 
@@ -29,23 +31,14 @@ class Volumes extends React.Component {
         super(props);
         this.state = {
             isExpanded: false,
+            showVolumeCreateModal: false,
         };
 
         this.renderRow = this.renderRow.bind(this);
     }
 
-    getUsedByText(volume) {
-        const { volumeContainerList } = this.props;
-        if (volumeContainerList === null) {
-            return { title: _("unused"), count: 0 };
-        }
-        const volumes = volumeContainerList[volume.Name + volume.isSystem.toString()];
-        if (volumes !== undefined) {
-            const title = cockpit.format(cockpit.ngettext("$0 volumes", "$0 volumes", volumes.length), volumes.length);
-            return { title, count: volumes.length };
-        } else {
-            return { title: _("unused"), count: 0 };
-        }
+    onOpenPruneUnusedVolumesDialog = () => {
+        this.setState({ showPruneUnusedVolumesModal: true });
     }
 
     calculateStats = () => {
@@ -78,20 +71,13 @@ class Volumes extends React.Component {
 
     renderRow(volume) {
         const tabs = [];
-        const { title: usedByText, count: usedByCount } = this.getUsedByText(volume);
-
-        const info_block =
-            <div className="volume-block">
-                <span className="volume-name">{volume.Name}</span><br />
-                <small>{volume.Mountpoint}</small>
-            </div>;
 
         const columns = [
-            { title: info_block },
+            { title: volume.Name },
+            { title: <small>{ volume.Mountpoint }</small> },
             { title: volume.isSystem ? _("system") : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user}</div>, props: { modifier: "nowrap" } },
             utils.localize_date(volume.CreatedAt),
             { title: volume.Driver, props: { modifier: "nowrap" } },
-            { title: <span className={usedByCount === 0 ? "ct-grey-text" : ""}>{usedByText}</span>, props: { modifier: "nowrap" } },
             {
                 title: <VolumeActions volume={volume} onAddNotification={this.props.onAddNotification} selinuxAvailable={this.props.selinuxAvailable}
                                      registries={this.props.registries} user={this.props.user}
@@ -125,11 +111,11 @@ class Volumes extends React.Component {
 
     render() {
         const columnTitles = [
-            { title: _("Volume"), transforms: [cellWidth(20)] },
+            _("Name"),
+            { title: _("Mountpoint"), transforms: [cellWidth(20)] },
             _("Owner"),
             _("Created"),
             _("Driver"),
-            _("Used by")
         ];
         let emptyCaption = _("No volumes");
         if (this.props.volumes === null)
@@ -181,11 +167,6 @@ class Volumes extends React.Component {
                 <Text component={TextVariants.h5}>
                     {cockpit.format(cockpit.ngettext("$0 volume total", "$0 volumes total", volumeStats.volumesTotal), volumeStats.volumesTotal)}
                 </Text>
-                {volumeStats.unusedTotal !== 0 &&
-                <Text component={TextVariants.h5}>
-                    {cockpit.format(cockpit.ngettext("$0 unused volume", "$0 unused volumes", volumeStats.unusedTotal), volumeStats.unusedTotal)}
-                </Text>
-                }
             </>
         );
 
@@ -199,6 +180,23 @@ class Volumes extends React.Component {
                                 <Flex style={{ rowGap: "var(--pf-global--spacer--xs)" }}>{volumeTitleStats}</Flex>
                             </Flex>
                         </FlexItem>
+                        <ToolbarItem>
+                            <Button variant="primary" key="get-new-image-action"
+                            id="volumes-volumes-create-volume-btn"
+                            onClick={() => this.setState({ showVolumeCreateModal: true })}>
+                                {_("Create volume")}
+                            </Button>
+                        </ToolbarItem>
+                        {this.state.showVolumeCreateModal &&
+                        <VolumeCreateModal
+                        user={this.props.user}
+                        close={() => this.setState({ showVolumeCreateModal: false })}
+                        selinuxAvailable={this.props.selinuxAvailable}
+                        podmanRestartAvailable={this.props.podmanRestartAvailable}
+                        systemServiceAvailable={this.props.systemServiceAvailable}
+                        userServiceAvailable={this.props.userServiceAvailable}
+                        onAddNotification={this.props.onAddNotification}
+                        /> }
                         <FlexItem>
                             <VolumeOverActions handlePruneUsedVolumes={this.onOpenPruneUnusedVolumesDialog}
                                               unusedVolumes={unusedVolumes} />
