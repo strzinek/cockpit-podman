@@ -227,7 +227,7 @@ export class PodCreateModal extends React.Component {
 
     createPod = (isSystem, createConfig) => {
         client.createPod(isSystem, createConfig)
-                .then(reply => {
+                .then(() => {
                     this.props.close();
                 })
                 .catch(ex => {
