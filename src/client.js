@@ -130,6 +130,14 @@ export function postPod(system, action, id, args) {
     });
 }
 
+export function createPod(system, config) {
+    return new Promise((resolve, reject) => {
+        podmanCall("libpod/pods/create", "POST", {}, system, JSON.stringify(config))
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
 export function delPod(system, id, force) {
     return new Promise((resolve, reject) => {
         const options = {

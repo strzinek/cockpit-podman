@@ -29,6 +29,7 @@ import ContainerCommitModal from './ContainerCommitModal.jsx';
 import './Containers.scss';
 import { ImageRunModal } from './ImageRunModal.jsx';
 import { PodActions } from './PodActions.jsx';
+import { PodCreateModal } from './PodCreateModal.jsx';
 
 const _ = cockpit.gettext;
 
@@ -326,6 +327,7 @@ class Containers extends React.Component {
         this.state = {
             width: 0,
             showCreateContainerModal: false,
+            showCreatePodModal: false,
             createPod: null,
             downloadingContainers: [],
         };
@@ -523,6 +525,24 @@ class Containers extends React.Component {
             });
         }
 
+        const ContainerOverActions = () => {
+            const [isActionsKebabOpen, setIsActionsKebabOpen] = useState(false);
+
+            return (
+                <Dropdown toggle={<KebabToggle onToggle={() => setIsActionsKebabOpen(!isActionsKebabOpen)} id="container-over-actions-dropdown" />}
+                          isOpen={isActionsKebabOpen}
+                          isPlain
+                          position="right"
+                          dropdownItems={[
+                              <DropdownItem key="create-new-pod"
+                                  component="button"
+                                  onClick={() => this.setState({ showCreatePodModal: true })}>
+                                  {_("Create pod")}
+                              </DropdownItem>
+                          ]} />
+            );
+        };
+
         const filterRunning =
             <Toolbar>
                 <ToolbarContent>
@@ -543,6 +563,7 @@ class Containers extends React.Component {
                         onClick={() => this.setState({ showCreateContainerModal: true })}>
                             {_("Create container")}
                         </Button>
+                        <ContainerOverActions onAddNotification={this.props.onAddNotification} />
                     </ToolbarItem>
                 </ToolbarContent>
                 {this.state.showCreateContainerModal && localImages &&
@@ -552,6 +573,16 @@ class Containers extends React.Component {
                 close={() => this.setState({ showCreateContainerModal: false, createPod: null })}
                 pod={this.state.createPod}
                 registries={this.props.registries}
+                selinuxAvailable={this.props.selinuxAvailable}
+                podmanRestartAvailable={this.props.podmanRestartAvailable}
+                systemServiceAvailable={this.props.systemServiceAvailable}
+                userServiceAvailable={this.props.userServiceAvailable}
+                onAddNotification={this.props.onAddNotification}
+                /> }
+                {this.state.showCreatePodModal &&
+                <PodCreateModal
+                user={this.props.user}
+                close={() => this.setState({ showCreatePodModal: false })}
                 selinuxAvailable={this.props.selinuxAvailable}
                 podmanRestartAvailable={this.props.podmanRestartAvailable}
                 systemServiceAvailable={this.props.systemServiceAvailable}
