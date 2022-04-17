@@ -1000,7 +1000,7 @@ export class ImageRunModal extends React.Component {
                     </Tab>
                     <Tab eventKey={1} title={<TabTitleText>{_("Integration")}</TabTitleText>} id="create-image-dialog-tab-integration" className="pf-c-form">
 
-                        {!this.props.pod ?? <DynamicListForm id='run-image-dialog-publish'
+                        {!this.props.pod && <DynamicListForm id='run-image-dialog-publish'
                                  emptyStateString={_("No ports exposed")}
                                  formclass='publish-port-form'
                                  label={_("Port mapping")}
