@@ -378,13 +378,22 @@ class Containers extends React.Component {
             containerStateClass += " downloading";
         }
         const containerState = container.State.charAt(0).toUpperCase() + container.State.slice(1);
-        const columns = [
-            { title: info_block },
-            { title: container.isSystem ? _("system") : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user}</div>, props: { modifier: "nowrap" } },
-            { title: proc, props: { modifier: "nowrap" } },
-            { title: mem, props: { modifier: "nowrap" } },
-            { title: <Badge isRead className={containerStateClass}>{_(containerState)}</Badge> }, // States are defined in util.js
-        ];
+        let columns = [];
+        if (container.Pod)
+            columns = [
+                { title: info_block },
+                { title: proc, props: { modifier: "nowrap" } },
+                { title: mem, props: { modifier: "nowrap" } },
+                { title: <Badge isRead className={containerStateClass}>{_(containerState)}</Badge> }, // States are defined in util.js
+            ];
+        else
+            columns = [
+                { title: info_block },
+                { title: container.isSystem ? _("system") : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user}</div>, props: { modifier: "nowrap" } },
+                { title: proc, props: { modifier: "nowrap" } },
+                { title: mem, props: { modifier: "nowrap" } },
+                { title: <Badge isRead className={containerStateClass}>{_(containerState)}</Badge> }, // States are defined in util.js
+            ];
 
         if (!container.isDownloading) {
             columns.push({ title: <ContainerActions version={this.props.version} container={container} onAddNotification={this.props.onAddNotification} localImages={localImages} />, props: { className: "pf-c-table__action" } });
@@ -426,6 +435,13 @@ class Containers extends React.Component {
         const columnTitles = [
             { title: _("Container"), transforms: [cellWidth(20)] },
             _("Owner"),
+            _("CPU"),
+            _("Memory"),
+            _("State"),
+            ''
+        ];
+        const columnPodTitles = [
+            { title: _("Container"), transforms: [cellWidth(20)] },
             _("CPU"),
             _("Memory"),
             _("State"),
@@ -563,6 +579,8 @@ class Containers extends React.Component {
                         onClick={() => this.setState({ showCreateContainerModal: true })}>
                             {_("Create container")}
                         </Button>
+                    </ToolbarItem>
+                    <ToolbarItem>
                         <ContainerOverActions onAddNotification={this.props.onAddNotification} />
                     </ToolbarItem>
                 </ToolbarContent>
@@ -656,7 +674,7 @@ class Containers extends React.Component {
                                                 </CardHeader>}
                                                 <ListingTable variant='compact'
                                                           emptyCaption={section == "no-pod" ? emptyCaption : emptyCaptionPod}
-                                                          columns={columnTitles}
+                                                          columns={section == "no-pod" ? columnTitles : columnPodTitles}
                                                           rows={rows}
                                                           {...tableProps} />
                                             </Card>
