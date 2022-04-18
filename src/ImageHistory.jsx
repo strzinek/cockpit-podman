@@ -1,10 +1,8 @@
 import React from 'react';
-import cockpit from 'cockpit';
 import * as utils from './util.js';
 
-import { DescriptionList, DescriptionListTerm, DescriptionListDescription, DescriptionListGroup, List, ListItem } from "@patternfly/react-core";
-
-const _ = cockpit.gettext;
+import { DescriptionList, DescriptionListDescription, DescriptionListGroup, List, ListItem } from "@patternfly/react-core";
+import '@patternfly/react-styles/css/utilities/Sizing/sizing.css';
 
 const render_image_history = (history) => {
     if (!history)
@@ -27,8 +25,7 @@ const ImageHistory = ({ image }) => {
     return (
         <DescriptionList className='image-history' isAutoFit>
             {image.History !== "" &&
-            <DescriptionListGroup>
-                <DescriptionListTerm>{_("History")}</DescriptionListTerm>
+            <DescriptionListGroup style={{ maxHeight: "300pt", overflow: "auto" }}>
                 <DescriptionListDescription>{history}</DescriptionListDescription>
             </DescriptionListGroup>
             }
