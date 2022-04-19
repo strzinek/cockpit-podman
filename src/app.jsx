@@ -410,6 +410,7 @@ class Application extends React.Component {
         case 'sync':
         case 'unmount':
         case 'unpause':
+        case 'rename': // rename event is available starting podman v4.1; until then the container does not get refreshed after renaming
             this.updateContainerAfterEvent(event.Actor.ID, system);
             break;
         case 'remove':
