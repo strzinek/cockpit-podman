@@ -98,6 +98,14 @@ export function delContainer(system, id, force) {
     });
 }
 
+export function renameContainer(system, id, config) {
+    return new Promise((resolve, reject) => {
+        podmanCall("libpod/containers/" + id + "/rename", "POST", config, system)
+                .then(resolve)
+                .catch(reject);
+    });
+}
+
 export function createContainer(system, config) {
     return new Promise((resolve, reject) => {
         podmanCall("libpod/containers/create", "POST", {}, system, JSON.stringify(config))

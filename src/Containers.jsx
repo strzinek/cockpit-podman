@@ -25,6 +25,7 @@ import ForceRemoveModal from './ForceRemoveModal.jsx';
 import * as utils from './util.js';
 import * as client from './client.js';
 import ContainerCommitModal from './ContainerCommitModal.jsx';
+import ContainerRenameModal from './ContainerRenameModal.jsx';
 
 import './Containers.scss';
 import { ImageRunModal } from './ImageRunModal.jsx';
@@ -40,6 +41,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
     const [restoreInProgress, setRestoreInProgress] = useState(false);
     const [restoreModal, setRestoreModal] = useState(false);
     const [commitModal, setCommitModal] = useState(false);
+    const [renameModal, setRenameModal] = useState(false);
     const [isActionsKebabOpen, setActionsKebabOpen] = useState(false);
     const isRunning = container.State == "running";
     const isPaused = container.State === "paused";
@@ -110,6 +112,15 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
                     const error = cockpit.format(_("Failed to restart container $0"), container.Names);
                     onAddNotification({ type: 'danger', error, errorDetail: ex.message });
                 });
+    };
+
+    const renameContainer = () => {
+        if (container.State == "running") {
+            setRenameModal(false);
+        } else {
+            setRenameModal(true);
+        }
+        setActionsKebabOpen(false);
     };
 
     const handleRemoveContainer = () => {
@@ -223,6 +234,10 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
             <DropdownItem key="start"
                           onClick={() => startContainer()}>
                 {_("Start")}
+            </DropdownItem>,
+            <DropdownItem key="rename"
+                          onClick={() => renameContainer()}>
+                {_("Rename")}
             </DropdownItem>
         );
         if (container.isSystem && container.hasCheckpoint) {
@@ -296,10 +311,17 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
             localImages={localImages}
         />;
 
+    const containerRenameModal =
+        <ContainerRenameModal
+            onHide={() => setRenameModal(false)}
+            container={container}
+        />;
+
     return (
         <>
             {kebab}
             {deleteModal && containerDeleteModal}
+            {renameModal && containerRenameModal}
             {checkpointModal && containerCheckpointModal}
             {restoreModal && containerRestoreModal}
             {removeErrorModal && containerRemoveErrorModal}
