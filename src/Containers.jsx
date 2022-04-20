@@ -115,11 +115,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
     };
 
     const renameContainer = () => {
-        if (container.State == "running") {
-            setRenameModal(false);
-        } else {
-            setRenameModal(true);
-        }
+        setRenameModal(container.State !== "running");
         setActionsKebabOpen(false);
     };
 
