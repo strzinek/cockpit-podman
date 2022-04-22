@@ -674,6 +674,7 @@ class Application extends React.Component {
                 registries={this.state.registries}
                 selinuxAvailable={this.state.selinuxAvailable}
                 podmanRestartAvailable={this.state.podmanRestartAvailable}
+                updateContainerAfterEvent={this.updateContainerAfterEvent}
             />;
 
         const notificationList = (
