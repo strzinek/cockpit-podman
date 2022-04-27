@@ -16,3 +16,15 @@
 .containers-images .pf-c-expandable-section__content {
     margin-top: 0px;
 }
+
+.ct-code {
+    font-size: 12;
+    font-family: RedHatMono Consolas, monospace;
+}
+
+#ct-image-history {
+    margin:0;
+    padding:1pt;
+    max-height:300pt;
+    overflow:auto;
+}
