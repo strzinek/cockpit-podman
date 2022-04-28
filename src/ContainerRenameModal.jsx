@@ -20,7 +20,11 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
     const handleInputChange = (targetName, value) => {
         if (targetName === "name") {
             setName(value);
-            setNameError(null);
+            if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
+                setNameError(null);
+            } else {
+                setNameError(_("Invalid characters entered. Name must contain only letters, numbers and characters [_], [.] or [-]."));
+            }
         }
     };
 
@@ -60,6 +64,8 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
                 <TextInput id="rename-dialog-container-name"
                         value={name}
                         validated={nameError ? "error" : "default"}
+                        type="text"
+                        aria-label={nameError}
                         onChange={value => handleInputChange("name", value)} />
             </FormGroup>
         </Form>;
