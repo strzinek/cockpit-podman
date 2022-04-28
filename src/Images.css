@@ -1,3 +1,5 @@
+@import "global-variables";
+
 #containers-images div.download-in-progress {
     color: grey;
     font-weight: bold;
@@ -18,8 +20,7 @@
 }
 
 .ct-code {
-    font-size: 12;
-    font-family: RedHatMono Consolas, monospace;
+    font-family: RedHatMono, Consolas, monospace;
 }
 
 #ct-image-history {
@@ -27,4 +28,12 @@
     padding:1pt;
     max-height:300pt;
     overflow:auto;
+}
+
+@media ( max-width: $pf-global--breakpoint--md - 1 ) {
+
+    .pf-m-grid-md.pf-c-table [data-label] > .ct-code {
+        grid-column: 1 / span 2;
+    }
+
 }
