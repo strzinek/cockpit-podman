@@ -11,8 +11,8 @@ import { ErrorNotification } from './Notification.jsx';
 
 const _ = cockpit.gettext;
 
-const ContainerRenameModal = (props) => {
-    const [name, setName] = useState(props.container.Names[0]);
+const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) => {
+    const [name, setName] = useState(container.Names[0]);
     const [nameError, setNameError] = useState(null);
     const [dialogError, setDialogError] = useState(null);
     const [dialogErrorDetail, setDialogErrorDetail] = useState(null);
@@ -30,20 +30,17 @@ const ContainerRenameModal = (props) => {
             return;
         }
 
-        const renameData = {
-            name: name
-        };
         setNameError(null);
         setDialogError(null);
-        client.renameContainer(props.container.isSystem, props.container.Id, renameData)
+        client.renameContainer(container.isSystem, container.Id, { name })
                 .then(() => {
-                    props.onHide();
-                    // This is a workaround for missing API rename event in Podman.
-                    // It should be fixed in Podman v4.1, then next line and reference from props can be removed
-                    props.updateContainerAfterEvent(props.container.Id, props.container.isSystem);
+                    onHide();
+                    // HACK: This is a workaround for missing API rename event in Podman.
+                    // HACK: It should be fixed in Podman v4.1, then next line and reference from props can be removed
+                    updateContainerAfterEvent(container.Id, container.isSystem);
                 })
                 .catch(ex => {
-                    setDialogError(cockpit.format(_("Failed to rename container $0"), props.container.Names[0]));
+                    setDialogError(cockpit.format(_("Failed to rename container $0"), container.Names[0]));
                     setDialogErrorDetail(cockpit.format("$0: $1", ex.message, ex.reason));
                 });
     };
@@ -70,9 +67,9 @@ const ContainerRenameModal = (props) => {
     return (
         <Modal isOpen
             position="top" variant="medium"
-            onClose={props.onHide}
+            onClose={onHide}
             onKeyPress={handleKeyPress}
-            title={cockpit.format(_("Rename container $0"), props.container.Names[0])}
+            title={cockpit.format(_("Rename container $0"), container.Names[0])}
             footer={<>
                 {dialogError && <ErrorNotification errorMessage={dialogError} errorDetail={dialogErrorDetail} onDismiss={() => setDialogError(null)} />}
                 <Button variant="primary"
@@ -84,7 +81,7 @@ const ContainerRenameModal = (props) => {
                 </Button>{' '}
                 <Button variant="link"
                         className="btn-ctr-cancel-commit"
-                        onClick={props.onHide}>
+                        onClick={onHide}>
                     {_("Cancel")}
                 </Button>
             </>}

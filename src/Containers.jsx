@@ -309,8 +309,8 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
 
     const containerRenameModal =
         <ContainerRenameModal
-            onHide={() => setRenameModal(false)}
             container={container}
+            onHide={() => setRenameModal(false)}
             updateContainerAfterEvent={updateContainerAfterEvent}
         />;
 
