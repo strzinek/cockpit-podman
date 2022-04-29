@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Button,
     Form, FormGroup,
@@ -7,102 +7,94 @@ import {
 import cockpit from 'cockpit';
 
 import * as client from './client.js';
-
 import { ErrorNotification } from './Notification.jsx';
-import * as dockerNames from 'docker-names';
 
 const _ = cockpit.gettext;
 
-class ContainerRenameModal extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            name: dockerNames.getRandomName(),
-            nameError: "",
-        };
+const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) => {
+    const [name, setName] = useState(container.Names[0]);
+    const [nameError, setNameError] = useState(null);
+    const [dialogError, setDialogError] = useState(null);
+    const [dialogErrorDetail, setDialogErrorDetail] = useState(null);
 
-        this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleRename = this.handleRename.bind(this);
-    }
+    const handleInputChange = (targetName, value) => {
+        if (targetName === "name") {
+            setName(value);
+            if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
+                setNameError(null);
+            } else {
+                setNameError(_("Invalid characters entered. Name must contain only letters, numbers and characters [_], [.] or [-]."));
+            }
+        }
+    };
 
-    componentDidMount() {
-        this._isMounted = true;
-    }
-
-    componentWillUnmount() {
-        this._isMounted = false;
-
-        if (this.activeConnection)
-            this.activeConnection.close();
-    }
-
-    handleInputChange(targetName, value) {
-        const newState = { [targetName]: value };
-
-        if (targetName === "name")
-            newState.nameError = "";
-
-        this.setState(newState);
-    }
-
-    handleRename() {
-        if (!this.state.name) {
-            this.setState({ nameError: "Container name is required" });
+    const handleRename = () => {
+        if (!name) {
+            setNameError(_("Container name is required"));
             return;
         }
 
-        const renameData = {};
-        renameData.name = this.state.name;
-
-        this.setState({ nameError: "", dialogError: "" });
-        client.renameContainer(this.props.container.isSystem, this.props.container.Id, renameData)
-                .then(() => this.props.onHide())
+        setNameError(null);
+        setDialogError(null);
+        client.renameContainer(container.isSystem, container.Id, { name })
+                .then(() => {
+                    onHide();
+                    // HACK: This is a workaround for missing API rename event in Podman.
+                    // HACK: It should be fixed in Podman v4.1, then next line and reference from props can be removed
+                    updateContainerAfterEvent(container.Id, container.isSystem);
+                })
                 .catch(ex => {
-                    this.setState({
-                        dialogError: cockpit.format(_("Failed to rename container $0"), this.props.container.Names),
-                        dialogErrorDetail: cockpit.format("$0: $1", ex.message, ex.reason),
-                    });
+                    setDialogError(cockpit.format(_("Failed to rename container $0"), container.Names[0]));
+                    setDialogErrorDetail(cockpit.format("$0: $1", ex.message, ex.reason));
                 });
-    }
+    };
 
-    render() {
-        const renameContent =
-            <Form isHorizontal>
-                <FormGroup fieldId="rename-dialog-image-name" label={_("New container name")}
-                           validated={this.state.nameError ? "error" : "default"}
-                           helperTextInvalid={this.state.nameError}>
-                    <TextInput id="rename-dialog-image-name"
-                               value={this.state.name}
-                               validated={this.state.nameError ? "error" : "default"}
-                               onChange={value => this.handleInputChange("name", value)} />
-                </FormGroup>
+    const handleKeyPress = (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            handleRename(name);
+        }
+    };
 
-            </Form>;
+    const renameContent =
+        <Form isHorizontal>
+            <FormGroup fieldId="rename-dialog-container-name" label={_("New container name")}
+                    validated={nameError ? "error" : "default"}
+                    helperTextInvalid={nameError}>
+                <TextInput id="rename-dialog-container-name"
+                        value={name}
+                        validated={nameError ? "error" : "default"}
+                        type="text"
+                        aria-label={nameError}
+                        onChange={value => handleInputChange("name", value)} />
+            </FormGroup>
+        </Form>;
 
-        return (
-            <Modal isOpen
-                   showClose={false}
-                   position="top" variant="medium"
-                   title={cockpit.format(_("Rename container $0 "), this.props.container.Names)}
-                   footer={<>
-                       {this.state.dialogError && <ErrorNotification errorMessage={this.state.dialogError} errorDetail={this.state.dialogErrorDetail} onDismiss={() => this.setState({ dialogError: undefined })} />}
-                       <Button variant="primary"
-                               className="btn-ctr-rename"
-                               isDisabled={this.state.nameError}
-                               onClick={() => this.handleRename(false)}>
-                           {_("Rename")}
-                       </Button>
-                       <Button variant="link"
-                               className="btn-ctr-cancel-commit"
-                               onClick={this.props.onHide}>
-                           {_("Cancel")}
-                       </Button>
-                   </>}
-            >
-                {renameContent}
-            </Modal>
-        );
-    }
-}
+    return (
+        <Modal isOpen
+            position="top" variant="medium"
+            onClose={onHide}
+            onKeyPress={handleKeyPress}
+            title={cockpit.format(_("Rename container $0"), container.Names[0])}
+            footer={<>
+                {dialogError && <ErrorNotification errorMessage={dialogError} errorDetail={dialogErrorDetail} onDismiss={() => setDialogError(null)} />}
+                <Button variant="primary"
+                        className="btn-ctr-rename"
+                        id="btn-rename-dialog-container"
+                        isDisabled={nameError}
+                        onClick={handleRename}>
+                    {_("Rename")}
+                </Button>{' '}
+                <Button variant="link"
+                        className="btn-ctr-cancel-commit"
+                        onClick={onHide}>
+                    {_("Cancel")}
+                </Button>
+            </>}
+        >
+            {renameContent}
+        </Modal>
+    );
+};
 
 export default ContainerRenameModal;

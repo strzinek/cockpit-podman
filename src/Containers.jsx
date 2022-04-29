@@ -34,7 +34,7 @@ import { PodCreateModal } from './PodCreateModal.jsx';
 
 const _ = cockpit.gettext;
 
-const ContainerActions = ({ container, onAddNotification, version, localImages }) => {
+const ContainerActions = ({ container, onAddNotification, version, localImages, updateContainerAfterEvent }) => {
     const [removeErrorModal, setRemoveErrorModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
     const [checkpointInProgress, setCheckpointInProgress] = useState(false);
@@ -116,11 +116,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
     };
 
     const renameContainer = () => {
-        if (container.State == "running") {
-            setRenameModal(false);
-        } else {
-            setRenameModal(true);
-        }
+        setRenameModal(container.State !== "running");
         setActionsKebabOpen(false);
     };
 
@@ -314,8 +310,9 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
 
     const containerRenameModal =
         <ContainerRenameModal
-            onHide={() => setRenameModal(false)}
             container={container}
+            onHide={() => setRenameModal(false)}
+            updateContainerAfterEvent={updateContainerAfterEvent}
         />;
 
     return (
@@ -418,7 +415,7 @@ class Containers extends React.Component {
             ];
 
         if (!container.isDownloading) {
-            columns.push({ title: <ContainerActions version={this.props.version} container={container} onAddNotification={this.props.onAddNotification} localImages={localImages} />, props: { className: "pf-c-table__action" } });
+            columns.push({ title: <ContainerActions version={this.props.version} container={container} onAddNotification={this.props.onAddNotification} localImages={localImages} updateContainerAfterEvent={this.props.updateContainerAfterEvent} />, props: { className: "pf-c-table__action" } });
         }
 
         const tty = containerDetail ? !!containerDetail.Config.Tty : undefined;
