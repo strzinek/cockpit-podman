@@ -14,6 +14,7 @@ import cockpit from 'cockpit';
 import { ListingTable } from "cockpit-components-table.jsx";
 import { ListingPanel } from 'cockpit-components-listing-panel.jsx';
 import ImageDetails from './ImageDetails.jsx';
+import ImageHistory from './ImageHistory.jsx';
 import { ImageRunModal } from './ImageRunModal.jsx';
 import { ImageSearchModal } from './ImageSearchModal.jsx';
 import { ImageDeleteModal } from './ImageDeleteModal.jsx';
@@ -145,6 +146,13 @@ class Images extends React.Component {
                 showAll: this.props.showAll,
             }
         });
+        tabs.push({
+            name: _("History"),
+            renderer: ImageHistory,
+            data: {
+                image: image,
+            }
+        });
         return {
             expandedContent: <ListingPanel
                                 colSpan='8'
@@ -267,7 +275,7 @@ class Images extends React.Component {
                         <FlexItem grow={{ default: 'grow' }}>
                             <Flex>
                                 <Text className="images-title" component={TextVariants.h3}>{_("Images")}</Text>
-                                <Flex style={{ "row-gap": "var(--pf-global--spacer--xs)" }}>{imageTitleStats}</Flex>
+                                <Flex style={{ rowGap: "var(--pf-global--spacer--xs)" }}>{imageTitleStats}</Flex>
                             </Flex>
                         </FlexItem>
                         <FlexItem>

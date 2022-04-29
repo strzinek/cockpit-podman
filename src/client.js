@@ -1,7 +1,7 @@
 import rest from './rest.js';
 
 const PODMAN_SYSTEM_ADDRESS = "/run/podman/podman.sock";
-export const VERSION = "/v1.12/";
+export const VERSION = "/v4.0/";
 
 export function getAddress(system) {
     if (system)
@@ -132,6 +132,14 @@ export function postPod(system, action, id, args) {
     });
 }
 
+export function createPod(system, config) {
+    return new Promise((resolve, reject) => {
+        podmanCall("libpod/pods/create", "POST", {}, system, JSON.stringify(config))
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
 export function delPod(system, id, force) {
     return new Promise((resolve, reject) => {
         const options = {
@@ -212,9 +220,18 @@ export function getImages(system, id) {
                                     images[info.Id] = Object.assign(images[info.Id], parseImageInfo(info));
                                     images[info.Id].isSystem = system;
                                 }
-                                resolve(images);
                             })
                             .catch(reject);
+
+                    for (const image of immages || []) {
+                        podmanCall("libpod/images/" + image.Id + "/history", "GET", {}, system)
+                                .then(reply => {
+                                    images[image.Id].History = JSON.parse(reply);
+                                })
+                                .catch(reject);
+                    }
+
+                    resolve(images);
                 })
                 .catch(reject);
     });
@@ -286,4 +303,55 @@ export function pruneUnusedImages(system) {
 
 export function imageExists(system, id) {
     return podmanCall("libpod/images/" + id + "/exists", "GET", {}, system);
+}
+
+export function inspectVolume(system, name) {
+    return new Promise((resolve, reject) => {
+        const options = {};
+        podmanCall("libpod/volumes/" + name + "/json", "GET", options, system)
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
+export function getVolumes(system, name) {
+    return new Promise((resolve, reject) => {
+        const options = {};
+        if (name)
+            options.filters = JSON.stringify({ name: [name] });
+        podmanCall("libpod/volumes/json", "GET", options, system)
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
+export function delVolume(system, name, force) {
+    return new Promise((resolve, reject) => {
+        const options = {
+            force: force,
+        };
+        podmanCall("libpod/volumes/" + name, "DELETE", options, system)
+                .then(reply => reply)
+                .catch(reject);
+    });
+}
+
+export function pruneUnusedVolumes(system) {
+    return new Promise((resolve, reject) => {
+        podmanCall("libpod/volumes/prune?all=true", "POST", {}, system).then(resolve)
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
+}
+
+export function volumeExists(system, name) {
+    return podmanCall("libpod/volumes/" + name + "/exists", "GET", {}, system);
+}
+
+export function createVolume(system, config) {
+    return new Promise((resolve, reject) => {
+        podmanCall("libpod/volumes/create", "POST", {}, system, JSON.stringify(config))
+                .then(reply => resolve(JSON.parse(reply)))
+                .catch(reject);
+    });
 }
