@@ -321,7 +321,7 @@ export class ImageRunModal extends React.Component {
             restartTries: 5,
             pullLatestImage: false,
             activeTabKey: 0,
-            owner: this.props.systemServiceAvailable ? systemOwner : this.props.user,
+            owner: this.props.pod ? this.props.pod.isSystem ? systemOwner : this.props.user : this.props.systemServiceAvailable ? systemOwner : this.props.user,
             /* image select */
             selectedImage,
             searchFinished: false,
@@ -826,12 +826,14 @@ export class ImageRunModal extends React.Component {
                                    label={_("System")}
                                    id="run-image-dialog-owner-system"
                                    isChecked={owner === "system"}
-                                   onChange={this.handleOwnerSelect} />
+                                   onChange={this.handleOwnerSelect}
+                                   isDisabled={!!this.props.pod} />
                             <Radio value={this.props.user}
                                    label={cockpit.format("$0 $1", _("User:"), this.props.user)}
                                    id="run-image-dialog-owner-user"
                                    isChecked={owner === this.props.user}
-                                   onChange={this.handleOwnerSelect} />
+                                   onChange={this.handleOwnerSelect}
+                                   isDisabled={!!this.props.pod} />
                         </FormGroup>
                         }
                         <FormGroup fieldId="create-image-image-select-typeahead" label={_("Image")}
@@ -998,14 +1000,14 @@ export class ImageRunModal extends React.Component {
                     </Tab>
                     <Tab eventKey={1} title={<TabTitleText>{_("Integration")}</TabTitleText>} id="create-image-dialog-tab-integration" className="pf-c-form">
 
-                        <DynamicListForm id='run-image-dialog-publish'
+                        {!this.props.pod && <DynamicListForm id='run-image-dialog-publish'
                                  emptyStateString={_("No ports exposed")}
                                  formclass='publish-port-form'
                                  label={_("Port mapping")}
                                  actionLabel={_("Add port mapping")}
                                  onChange={value => this.onValueChanged('publish', value)}
                                  default={{ IP: null, containerPort: null, hostPort: null, protocol: 'tcp' }}
-                                 itemcomponent={ <PublishPort />} />
+                                 itemcomponent={ <PublishPort />} />}
 
                         <DynamicListForm id='run-image-dialog-volume'
                                  emptyStateString={_("No volumes specified")}

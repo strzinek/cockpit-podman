@@ -25,10 +25,12 @@ import ForceRemoveModal from './ForceRemoveModal.jsx';
 import * as utils from './util.js';
 import * as client from './client.js';
 import ContainerCommitModal from './ContainerCommitModal.jsx';
+import ContainerRenameModal from './ContainerRenameModal.jsx';
 
 import './Containers.scss';
 import { ImageRunModal } from './ImageRunModal.jsx';
 import { PodActions } from './PodActions.jsx';
+import { PodCreateModal } from './PodCreateModal.jsx';
 
 const _ = cockpit.gettext;
 
@@ -40,6 +42,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
     const [restoreInProgress, setRestoreInProgress] = useState(false);
     const [restoreModal, setRestoreModal] = useState(false);
     const [commitModal, setCommitModal] = useState(false);
+    const [renameModal, setRenameModal] = useState(false);
     const [isActionsKebabOpen, setActionsKebabOpen] = useState(false);
     const isRunning = container.State == "running";
     const isPaused = container.State === "paused";
@@ -110,6 +113,15 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
                     const error = cockpit.format(_("Failed to restart container $0"), container.Names);
                     onAddNotification({ type: 'danger', error, errorDetail: ex.message });
                 });
+    };
+
+    const renameContainer = () => {
+        if (container.State == "running") {
+            setRenameModal(false);
+        } else {
+            setRenameModal(true);
+        }
+        setActionsKebabOpen(false);
     };
 
     const handleRemoveContainer = () => {
@@ -223,6 +235,10 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
             <DropdownItem key="start"
                           onClick={() => startContainer()}>
                 {_("Start")}
+            </DropdownItem>,
+            <DropdownItem key="rename"
+                          onClick={() => renameContainer()}>
+                {_("Rename")}
             </DropdownItem>
         );
         if (container.isSystem && container.hasCheckpoint) {
@@ -296,10 +312,17 @@ const ContainerActions = ({ container, onAddNotification, version, localImages }
             localImages={localImages}
         />;
 
+    const containerRenameModal =
+        <ContainerRenameModal
+            onHide={() => setRenameModal(false)}
+            container={container}
+        />;
+
     return (
         <>
             {kebab}
             {deleteModal && containerDeleteModal}
+            {renameModal && containerRenameModal}
             {checkpointModal && containerCheckpointModal}
             {restoreModal && containerRestoreModal}
             {removeErrorModal && containerRemoveErrorModal}
@@ -326,6 +349,7 @@ class Containers extends React.Component {
         this.state = {
             width: 0,
             showCreateContainerModal: false,
+            showCreatePodModal: false,
             createPod: null,
             downloadingContainers: [],
         };
@@ -376,13 +400,22 @@ class Containers extends React.Component {
             containerStateClass += " downloading";
         }
         const containerState = container.State.charAt(0).toUpperCase() + container.State.slice(1);
-        const columns = [
-            { title: info_block },
-            { title: container.isSystem ? _("system") : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user}</div>, props: { modifier: "nowrap" } },
-            { title: proc, props: { modifier: "nowrap" } },
-            { title: mem, props: { modifier: "nowrap" } },
-            { title: <Badge isRead className={containerStateClass}>{_(containerState)}</Badge> }, // States are defined in util.js
-        ];
+        let columns = [];
+        if (container.Pod)
+            columns = [
+                { title: info_block },
+                { title: proc, props: { modifier: "nowrap" } },
+                { title: mem, props: { modifier: "nowrap" } },
+                { title: <Badge isRead className={containerStateClass}>{_(containerState)}</Badge> }, // States are defined in util.js
+            ];
+        else
+            columns = [
+                { title: info_block },
+                { title: container.isSystem ? _("system") : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user}</div>, props: { modifier: "nowrap" } },
+                { title: proc, props: { modifier: "nowrap" } },
+                { title: mem, props: { modifier: "nowrap" } },
+                { title: <Badge isRead className={containerStateClass}>{_(containerState)}</Badge> }, // States are defined in util.js
+            ];
 
         if (!container.isDownloading) {
             columns.push({ title: <ContainerActions version={this.props.version} container={container} onAddNotification={this.props.onAddNotification} localImages={localImages} />, props: { className: "pf-c-table__action" } });
@@ -424,6 +457,13 @@ class Containers extends React.Component {
         const columnTitles = [
             { title: _("Container"), transforms: [cellWidth(20)] },
             _("Owner"),
+            _("CPU"),
+            _("Memory"),
+            _("State"),
+            ''
+        ];
+        const columnPodTitles = [
+            { title: _("Container"), transforms: [cellWidth(20)] },
             _("CPU"),
             _("Memory"),
             _("State"),
@@ -523,6 +563,24 @@ class Containers extends React.Component {
             });
         }
 
+        const ContainerOverActions = () => {
+            const [isActionsKebabOpen, setIsActionsKebabOpen] = useState(false);
+
+            return (
+                <Dropdown toggle={<KebabToggle onToggle={() => setIsActionsKebabOpen(!isActionsKebabOpen)} id="container-over-actions-dropdown" />}
+                          isOpen={isActionsKebabOpen}
+                          isPlain
+                          position="right"
+                          dropdownItems={[
+                              <DropdownItem key="create-new-pod"
+                                  component="button"
+                                  onClick={() => this.setState({ showCreatePodModal: true })}>
+                                  {_("Create pod")}
+                              </DropdownItem>
+                          ]} />
+            );
+        };
+
         const filterRunning =
             <Toolbar>
                 <ToolbarContent>
@@ -544,6 +602,9 @@ class Containers extends React.Component {
                             {_("Create container")}
                         </Button>
                     </ToolbarItem>
+                    <ToolbarItem>
+                        <ContainerOverActions onAddNotification={this.props.onAddNotification} />
+                    </ToolbarItem>
                 </ToolbarContent>
                 {this.state.showCreateContainerModal && localImages &&
                 <ImageRunModal
@@ -552,6 +613,16 @@ class Containers extends React.Component {
                 close={() => this.setState({ showCreateContainerModal: false, createPod: null })}
                 pod={this.state.createPod}
                 registries={this.props.registries}
+                selinuxAvailable={this.props.selinuxAvailable}
+                podmanRestartAvailable={this.props.podmanRestartAvailable}
+                systemServiceAvailable={this.props.systemServiceAvailable}
+                userServiceAvailable={this.props.userServiceAvailable}
+                onAddNotification={this.props.onAddNotification}
+                /> }
+                {this.state.showCreatePodModal &&
+                <PodCreateModal
+                user={this.props.user}
+                close={() => this.setState({ showCreatePodModal: false })}
                 selinuxAvailable={this.props.selinuxAvailable}
                 podmanRestartAvailable={this.props.podmanRestartAvailable}
                 systemServiceAvailable={this.props.systemServiceAvailable}
@@ -610,6 +681,7 @@ class Containers extends React.Component {
                                                     <CardTitle>
                                                         <span className='pod-name'>{caption}</span>
                                                         <span>{_("pod group")}</span>
+                                                        {this.props.pods[section].isSystem ? <div>{_("system")}</div> : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user} </div>}
                                                     </CardTitle>
                                                     <CardActions className='panel-actions'>
                                                         <Badge isRead className={"ct-badge-pod-" + podStatus.toLowerCase()}>{_(podStatus)}</Badge>
@@ -624,7 +696,7 @@ class Containers extends React.Component {
                                                 </CardHeader>}
                                                 <ListingTable variant='compact'
                                                           emptyCaption={section == "no-pod" ? emptyCaption : emptyCaptionPod}
-                                                          columns={columnTitles}
+                                                          columns={section == "no-pod" ? columnTitles : columnPodTitles}
                                                           rows={rows}
                                                           {...tableProps} />
                                             </Card>
