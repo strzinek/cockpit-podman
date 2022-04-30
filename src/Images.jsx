@@ -23,7 +23,7 @@ import ForceRemoveModal from './ForceRemoveModal.jsx';
 import * as client from './client.js';
 import * as utils from './util.js';
 
-import './Images.css';
+import './Images.scss';
 import '@patternfly/react-styles/css/utilities/Sizing/sizing.css';
 
 const _ = cockpit.gettext;
