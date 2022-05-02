@@ -40,6 +40,7 @@ const ImageHistory = ({ image }) => {
         <div id="ct-image-history">
             <ListingTable
                 variant='compact'
+                isStickyHeader
                 emptyCaption={null}
                 columns={columnTitles}
                 rows={history} />

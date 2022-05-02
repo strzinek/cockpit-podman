@@ -24,16 +24,23 @@
 }
 
 #ct-image-history {
-    margin:0;
-    padding:1pt;
-    max-height:300pt;
-    overflow:auto;
+    margin: 0;
+    max-height: 300pt;
+    overflow: auto;
 }
 
-@media ( max-width: $pf-global--breakpoint--md - 1 ) {
+#ct-image-history table tbody {
+    border: none;
+}
+
+@media ( max-width: $pf-global--breakpoint--md ) {
 
     .pf-m-grid-md.pf-c-table [data-label] > .ct-code {
         grid-column: 1 / span 2;
     }
 
+    #ct-image-history table tbody tr {
+        padding-left: 0;
+        padding-top: 0;
+    }
 }
