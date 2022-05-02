@@ -599,6 +599,7 @@ class Containers extends React.Component {
                 /> }
                 {this.state.showCreatePodModal &&
                 <PodCreateModal
+                props={this.props}
                 user={this.props.user}
                 close={() => this.setState({ showCreatePodModal: false })}
                 selinuxAvailable={this.props.selinuxAvailable}
