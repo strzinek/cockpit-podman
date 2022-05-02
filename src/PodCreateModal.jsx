@@ -19,6 +19,7 @@ const systemOwner = "system";
 
 export const PodCreateModal = ({ props, user, close }) => {
     const [podName, setPodName] = useState(dockerNames.getRandomName());
+    const [nameError, setNameError] = useState(null);
     const [publish, setPublish] = useState([]);
     const [volumes, setVolumes] = useState([]);
     const [owner, setOwner] = useState(props.systemServiceAvailable ? systemOwner : user);
@@ -75,18 +76,27 @@ export const PodCreateModal = ({ props, user, close }) => {
     };
 
     const onValueChanged = (key, value) => {
-        if (key === "podName")
+        if (key === "podName") {
             setPodName(value);
-        // TODO: add name validation
+            if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
+                setNameError(null);
+            } else {
+                setNameError(_("Invalid characters. Name can only contain letters, numbers, and certain punctuation (_ . -)."));
+            }
+        }
     };
 
     const defaultBody = (
         <Form>
-            <FormGroup fieldId='create-pod-dialog-name' label={_("Name")} className="ct-m-horizontal">
+            <FormGroup fieldId='create-pod-dialog-name' label={_("Name")} className="ct-m-horizontal"
+                    validated={nameError ? "error" : "default"}
+                    helperTextInvalid={nameError}>
                 <TextInput id='create-pod-dialog-name'
                        className="pod-name"
                        placeholder={_("Pod name")}
                        value={podName}
+                       validated={nameError ? "error" : "default"}
+                       aria-label={nameError}
                        onChange={value => onValueChanged('podName', value)} />
             </FormGroup>
             <FormGroup isInline hasNoPaddingTop fieldId='create-pod-dialog-owner' label={_("Owner")}>
@@ -131,7 +141,8 @@ export const PodCreateModal = ({ props, user, close }) => {
                 title={_("Create pod")}
                 footer={<>
                     {dialogError && <ErrorNotification errorMessage={dialogError} errorDetail={dialogErrorDetail} />}
-                    <Button variant='primary' id="create-pod-create-btn" onClick={() => onCreateClicked()}>
+                    <Button variant='primary' id="create-pod-create-btn" onClick={() => onCreateClicked()}
+                            isDisabled={nameError}>
                         {_("Create")}
                     </Button>
                     <Button variant='link' className='btn-cancel' onClick={() => close() }>
