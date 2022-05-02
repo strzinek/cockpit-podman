@@ -23,7 +23,7 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
             if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
                 setNameError(null);
             } else {
-                setNameError(_("Invalid characters entered. Name must contain only letters, numbers and characters [_], [.] or [-]."));
+                setNameError(_("Invalid characters. Name can only contain letters, numbers, and certain punctuation (_ . -)."));
             }
         }
     };
