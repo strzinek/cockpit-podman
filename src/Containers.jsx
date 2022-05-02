@@ -660,7 +660,10 @@ class Containers extends React.Component {
                                                     <CardTitle>
                                                         <span className='pod-name'>{caption}</span>
                                                         <span>{_("pod group")}</span>
-                                                        {this.props.pods[section].isSystem ? <div>{_("system")}</div> : <div><span className="ct-grey-text">{_("user:")} </span>{this.props.user} </div>}
+                                                        <div>
+                                                            <span>{_("Owner")} </span>
+                                                            {this.props.pods[section].isSystem ? <><span>{_("system")}</span></> : <><span className="ct-grey-text">{_("user:")}</span><span>{this.props.user}</span></> }
+                                                        </div>
                                                     </CardTitle>
                                                     <CardActions className='panel-actions'>
                                                         <Badge isRead className={"ct-badge-pod-" + podStatus.toLowerCase()}>{_(podStatus)}</Badge>
