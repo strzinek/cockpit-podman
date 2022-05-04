@@ -20,7 +20,9 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
     const handleInputChange = (targetName, value) => {
         if (targetName === "name") {
             setName(value);
-            if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
+            if (value === "") {
+                setNameError(_("Container name is required."));
+            } else if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
                 setNameError(null);
             } else {
                 setNameError(_("Invalid characters. Name can only contain letters, numbers, and certain punctuation (_ . -)."));
@@ -30,7 +32,7 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
 
     const handleRename = () => {
         if (!name) {
-            setNameError(_("Container name is required"));
+            setNameError(_("Container name is required."));
             return;
         }
 
@@ -84,7 +86,7 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
                         isDisabled={nameError}
                         onClick={handleRename}>
                     {_("Rename")}
-                </Button>{' '}
+                </Button>
                 <Button variant="link"
                         className="btn-ctr-cancel-commit"
                         onClick={onHide}>
