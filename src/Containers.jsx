@@ -232,11 +232,15 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
                           onClick={() => startContainer()}>
                 {_("Start")}
             </DropdownItem>,
-            <DropdownItem key="rename"
-                          onClick={() => renameContainer()}>
-                {_("Rename")}
-            </DropdownItem>
         );
+        if (version.localeCompare("3", undefined, { numeric: true, sensitivity: 'base' }) >= 0) {
+            actions.push(
+                <DropdownItem key="rename"
+                            onClick={() => renameContainer()}>
+                    {_("Rename")}
+                </DropdownItem>,
+            );
+        }
         if (container.isSystem && container.hasCheckpoint) {
             actions.push(
                 <DropdownSeparator key="separator-0" />,
