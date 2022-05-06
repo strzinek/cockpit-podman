@@ -1941,8 +1941,7 @@ class TestApplication(testlib.MachineCase):
         b.wait_not_present("#rename-dialog-container-name")
 
         container_sha = self.execute(auth, f"podman inspect --format '{{{{.Id}}}}' {container_name_new}").strip()
-        self.waitContainer(container_sha, auth, name=container_name_new, image='busybox:latest', cmd='sh',
-                           state='Configured', owner="system" if auth else "admin")
+        self.waitContainerRow(container_name_new)
 
         # test if rename is hidden for running container. This should change with rename events fixed in Podman.
         self.performContainerAction(container_name_new, "Start")
