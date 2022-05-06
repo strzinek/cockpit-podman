@@ -1948,5 +1948,6 @@ class TestApplication(testlib.MachineCase):
         self.performContainerAction(container_name_new, "Start")
         b.wait_not_present(self.getContainerAction(container_name_new, 'Rename'))
 
+
 if __name__ == '__main__':
     testlib.test_main()
