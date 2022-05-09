@@ -237,7 +237,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
                 <DropdownItem key="rename"
                             onClick={() => renameContainer()}>
                     {_("Rename")}
-                </DropdownItem>,
+                </DropdownItem>
             );
         }
         if (container.isSystem && container.hasCheckpoint) {
