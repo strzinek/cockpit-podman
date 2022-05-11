@@ -115,7 +115,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
     };
 
     const renameContainer = () => {
-        setRenameModal(container.State !== "running");
+        setRenameModal(container.State !== "running" || version.localeCompare("3.0.1", undefined, { numeric: true, sensitivity: 'base' }) >= 0);
         setActionsKebabOpen(false);
     };
 
@@ -177,6 +177,15 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
                 });
     };
 
+    const addRenameAction = () => {
+        actions.push(
+            <DropdownItem key="rename"
+                        onClick={() => renameContainer()}>
+                {_("Rename")}
+            </DropdownItem>
+        );
+    };
+
     const actions = [];
     if (isRunning || isPaused) {
         actions.push(
@@ -233,12 +242,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
             </DropdownItem>,
         );
         if (version.localeCompare("3", undefined, { numeric: true, sensitivity: 'base' }) >= 0) {
-            actions.push(
-                <DropdownItem key="rename"
-                            onClick={() => renameContainer()}>
-                    {_("Rename")}
-                </DropdownItem>
-            );
+            addRenameAction();
         }
         if (container.isSystem && container.hasCheckpoint) {
             actions.push(
@@ -248,6 +252,10 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
                     {_("Restore")}
                 </DropdownItem>
             );
+        }
+    } else { // running or paused
+        if (version.localeCompare("3.0.1", undefined, { numeric: true, sensitivity: 'base' }) >= 0) {
+            addRenameAction();
         }
     }
 
@@ -314,6 +322,7 @@ const ContainerActions = ({ container, onAddNotification, version, localImages, 
     const containerRenameModal =
         <ContainerRenameModal
             container={container}
+            version={version}
             onHide={() => setRenameModal(false)}
             updateContainerAfterEvent={updateContainerAfterEvent}
         />;
