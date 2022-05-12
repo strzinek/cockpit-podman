@@ -132,8 +132,15 @@ rpm: $(TARFILE) $(SPEC)
 	rm -r "`pwd`/output" "`pwd`/build"
 
 # build a VM with locally built distro pkgs installed
+# HACK for fedora-coreos: with network as the image does not have our expected containers, and we skip the rpm build/install
 $(VM_IMAGE): $(TARFILE) packaging/debian/rules packaging/debian/control packaging/arch/PKGBUILD bots
-	bots/image-customize --verbose --fresh --no-network --build $(TARFILE) --script $(CURDIR)/test/vm.install $(TEST_OS)
+	if [ "$$TEST_OS" = "fedora-coreos" ]; then \
+	    bots/image-customize --verbose --fresh --run-command 'mkdir -p /usr/local/share/cockpit' \
+	                         --upload dist:/usr/local/share/cockpit/podman \
+	                         --script $(CURDIR)/test/vm.install $(TEST_OS); \
+	else \
+	    bots/image-customize --verbose --fresh --no-network --build $(TARFILE) --script $(CURDIR)/test/vm.install $(TEST_OS); \
+	fi
 
 # convenience target for the above
 vm: $(VM_IMAGE)
@@ -160,7 +167,7 @@ bots:
 # when you start a new project, use the latest release, and update it from time to time
 test/common:
 	flock Makefile sh -ec '\
-	    git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 267; \
+	    git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 268.1; \
 	    git checkout --force FETCH_HEAD -- test/common; \
 	    git reset test/common'
 
@@ -170,7 +177,7 @@ test/reference: test/common
 # checkout Cockpit's PF/React/build library; again this has no API stability guarantee, so check out a stable tag
 $(LIB_TEST):
 	flock Makefile sh -ec '\
-	    git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 84598562813090b041e0a2eba09a84ac5998d762; \
+	    git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 268.1; \
 	    git checkout --force FETCH_HEAD -- pkg/lib; \
 	    git reset -- pkg/lib'
 	mv pkg/lib src/ && rmdir -p pkg
