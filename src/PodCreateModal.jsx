@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-    Button,
+    Button, Checkbox,
     Form, FormGroup, Modal, Radio,
     TextInput,
 } from '@patternfly/react-core';
@@ -20,6 +20,7 @@ const systemOwner = "system";
 export const PodCreateModal = ({ props, user, close }) => {
     const [podName, setPodName] = useState(dockerNames.getRandomName());
     const [nameError, setNameError] = useState(null);
+    const [infra, setInfra] = useState(true);
     const [publish, setPublish] = useState([]);
     const [volumes, setVolumes] = useState([]);
     const [owner, setOwner] = useState(props.systemServiceAvailable ? systemOwner : user);
@@ -31,6 +32,9 @@ export const PodCreateModal = ({ props, user, close }) => {
 
         if (podName)
             createConfig.name = podName;
+
+        if (!infra)
+            createConfig.no_infra = true;
 
         if (publish.length > 0)
             createConfig.portmappings = publish
@@ -78,7 +82,9 @@ export const PodCreateModal = ({ props, user, close }) => {
     const onValueChanged = (key, value) => {
         if (key === "podName") {
             setPodName(value);
-            if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
+            if (value === "") {
+                setNameError(_("Pod name is required."));
+            } else if (/^[a-zA-Z0-9][a-zA-Z0-9_\\.-]*$/.test(value)) {
                 setNameError(null);
             } else {
                 setNameError(_("Invalid characters. Name can only contain letters, numbers, and certain punctuation (_ . -)."));
@@ -104,12 +110,20 @@ export const PodCreateModal = ({ props, user, close }) => {
                         label={_("System")}
                         id="create-pod-dialog-owner-system"
                         isChecked={owner === systemOwner}
+                        isDisabled={!props.systemServiceAvailable}
                         onChange={() => setOwner(systemOwner)} />
                 <Radio value={user}
                         label={cockpit.format("$0 $1", _("User:"), user)}
                         id="create-pod-dialog-owner-user"
                         isChecked={owner === user}
+                        isDisabled={!props.systemServiceAvailable}
                         onChange={() => setOwner(user)} />
+            </FormGroup>
+            <FormGroup fieldId="create=pod-dialog-infra">
+                <Checkbox id="create-pod-dialog-infra"
+                        isChecked={infra}
+                        label={_("Create infra container")}
+                        onChange={value => setInfra(value)} />
             </FormGroup>
             <DynamicListForm id='create-pod-dialog-publish'
                         emptyStateString={_("No ports exposed")}
@@ -140,7 +154,6 @@ export const PodCreateModal = ({ props, user, close }) => {
                 onEscapePress={() => close() }
                 title={_("Create pod")}
                 footer={<>
-                    {dialogError && <ErrorNotification errorMessage={dialogError} errorDetail={dialogErrorDetail} />}
                     <Button variant='primary' id="create-pod-create-btn" onClick={() => onCreateClicked()}
                             isDisabled={nameError}>
                         {_("Create")}
@@ -150,6 +163,7 @@ export const PodCreateModal = ({ props, user, close }) => {
                     </Button>
                 </>}
         >
+            {dialogError && <ErrorNotification errorMessage={dialogError} errorDetail={dialogErrorDetail} />}
             {defaultBody}
         </Modal>
     );

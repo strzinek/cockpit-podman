@@ -1310,6 +1310,37 @@ class TestApplication(testlib.MachineCase):
             b.click('.pf-c-modal-box__footer #create-image-create-run-btn')
             b.wait(lambda: self.getContainerAttr(container_name, "State", sel) in 'Running')
 
+    def performContainersKebabAction(self, cmd):
+        b = self.browser
+        b.click("#container-over-actions-dropdown")
+        b.click(f"#containers-containers .pf-c-card__header .pf-c-card__actions .pf-c-toolbar .pf-c-dropdown__menu li:contains({cmd})")
+
+    def testCreatePodSystem(self):
+        self._testCreatePod(True)
+
+    def testCreatePodUser(self):
+        self._testCreatePod(False)
+
+    def _testCreatePod(self, auth):
+        b = self.browser
+        pod_name = "pod-create"
+
+        self.login(auth)
+
+        self.performContainersKebabAction("Create pod")
+
+        b.wait_visible('#create-pod-dialog-name')
+
+        b.set_input_text("#create-pod-dialog-name", pod_name)
+
+        # Uncheck infra checkbox - tests are running offline and default infra image may not be available
+        b.set_checked("#create-pod-dialog-infra", False)
+
+        b.click('#create-pod-create-btn')
+        b.wait_not_present("#create-pod-dialog-name")
+
+        self.waitPodRow(pod_name, False)
+
     @testlib.nondestructive
     def testRunImageSystem(self):
         self._testRunImage(True)

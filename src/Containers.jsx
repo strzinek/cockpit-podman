@@ -481,9 +481,6 @@ class Containers extends React.Component {
                 );
             }
 
-            // Remove infra containers
-            filtered = filtered.filter(id => !this.props.containers[id].IsInfra);
-
             filtered.sort((a, b) => {
                 // User containers are in front of system ones
                 if (this.props.containers[a].isSystem !== this.props.containers[b].isSystem)
