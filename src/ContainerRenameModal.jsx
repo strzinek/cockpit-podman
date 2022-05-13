@@ -11,7 +11,7 @@ import { ErrorNotification } from './Notification.jsx';
 
 const _ = cockpit.gettext;
 
-const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) => {
+const ContainerRenameModal = ({ container, version, onHide, updateContainerAfterEvent }) => {
     const [name, setName] = useState(container.Names[0]);
     const [nameError, setNameError] = useState(null);
     const [dialogError, setDialogError] = useState(null);
@@ -41,9 +41,10 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
         client.renameContainer(container.isSystem, container.Id, { name })
                 .then(() => {
                     onHide();
-                    // HACK: This is a workaround for missing API rename event in Podman.
-                    // HACK: It should be fixed in Podman v4.1, then next line and reference from props can be removed
-                    updateContainerAfterEvent(container.Id, container.isSystem);
+                    // HACK: This is a workaround for missing API rename event in Podman versions less than 4.1.
+                    if (version.localeCompare("4.1", undefined, { numeric: true, sensitivity: 'base' }) < 0) {
+                        updateContainerAfterEvent(container.Id, container.isSystem);
+                    }
                 })
                 .catch(ex => {
                     setDialogError(cockpit.format(_("Failed to rename container $0"), container.Names[0]));
@@ -79,7 +80,6 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
             onKeyPress={handleKeyPress}
             title={cockpit.format(_("Rename container $0"), container.Names[0])}
             footer={<>
-                {dialogError && <ErrorNotification errorMessage={dialogError} errorDetail={dialogErrorDetail} onDismiss={() => setDialogError(null)} />}
                 <Button variant="primary"
                         className="btn-ctr-rename"
                         id="btn-rename-dialog-container"
@@ -94,6 +94,7 @@ const ContainerRenameModal = ({ container, onHide, updateContainerAfterEvent }) 
                 </Button>
             </>}
         >
+            {dialogError && <ErrorNotification errorMessage={dialogError} errorDetail={dialogErrorDetail} onDismiss={() => setDialogError(null)} />}
             {renameContent}
         </Modal>
     );
