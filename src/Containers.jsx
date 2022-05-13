@@ -401,19 +401,22 @@ class Containers extends React.Component {
 
         const tty = containerDetail ? !!containerDetail.Config.Tty : undefined;
 
-        const tabs = [{
+        let tabs = [{
             name: _("Details"),
             renderer: ContainerDetails,
             data: { container: container, containerDetail: containerDetail }
-        }, {
-            name: _("Logs"),
-            renderer: ContainerLogs,
-            data: { containerId: container.Id, width: this.state.width, system: container.isSystem }
-        }, {
-            name: _("Console"),
-            renderer: ContainerTerminal,
-            data: { containerId: container.Id, containerStatus: container.State, width: this.state.width, system: container.isSystem, tty: tty }
         }];
+        if (!container.IsInfra) {
+            tabs = tabs.concat([{
+                name: _("Logs"),
+                renderer: ContainerLogs,
+                data: { containerId: container.Id, width: this.state.width, system: container.isSystem }
+            }, {
+                name: _("Console"),
+                renderer: ContainerTerminal,
+                data: { containerId: container.Id, containerStatus: container.State, width: this.state.width, system: container.isSystem, tty: tty }
+            }]);
+        }
 
         return {
             expandedContent: <ListingPanel colSpan='4'
