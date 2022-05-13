@@ -37,7 +37,7 @@ const render_image_history = (history) => {
 const ImageHistory = ({ image }) => {
     const history = (image && image.History.length !== 0) ? render_image_history(image.History) : null;
     return (
-        <div id="ct-image-history">
+        <div className='ct-image-history'>
             <ListingTable
                 variant='compact'
                 isStickyHeader
